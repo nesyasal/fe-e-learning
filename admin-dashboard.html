@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html class="no-js" lang="zxx">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>Admin Dashboard - Edumark</title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- CSS here -->
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="assets/css/themify-icons.css" />
+    <link rel="stylesheet" href="assets/css/animate.css" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
+  </head>
+
+  <body class="admin-body">
+    <div class="admin-container">
+      <!-- Sidebar -->
+      <aside class="admin-sidebar">
+        <div class="logo">
+          <h3>Edumark</h3>
+        </div>
+        <nav class="admin-menu">
+          <div class="menu-item active" onclick="showSection('overview', this)">
+            <i class="fa fa-dashboard"></i>
+            <span>Dashboard</span>
+          </div>
+          <div class="menu-item" onclick="showSection('transactions', this)">
+            <i class="fa fa-credit-card"></i>
+            <span>Transaksi</span>
+          </div>
+          <div class="menu-item" onclick="showSection('courses', this)">
+            <i class="fa fa-book"></i>
+            <span>Kursus</span>
+          </div>
+          <div class="menu-item" onclick="showSection('users', this)">
+            <i class="fa fa-users"></i>
+            <span>Pengguna</span>
+          </div>
+          <div class="menu-item" onclick="showSection('earnings', this)">
+            <i class="fa fa-money"></i>
+            <span>Penghasilan</span>
+          </div>
+          <div class="menu-item" onclick="showSection('settings', this)">
+            <i class="fa fa-cog"></i>
+            <span>Pengaturan</span>
+          </div>
+          <div class="menu-item" onclick="logout()">
+            <i class="fa fa-sign-out"></i>
+            <span>Keluar</span>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="admin-main">
+        <!-- Top Bar -->
+        <div class="admin-topbar">
+          <h2 id="page-title">Dashboard</h2>
+          <div class="admin-topbar-right">
+            <div class="user-profile">
+              <div
+                class="user-profile"
+                style="
+                  background: #667eea;
+                  width: 40px;
+                  height: 40px;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: white;
+                  font-weight: bold;
+                "
+              >
+                AD
+              </div>
+              <div class="user-name">Admin</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="admin-content">
+          <!-- Overview Section -->
+          <section class="dashboard-section active" id="overview">
+            <!-- Stats Cards -->
+            <div class="stats-container">
+              <div class="stat-card users">
+                <div class="stat-icon">
+                  <i class="fa fa-users"></i>
+                </div>
+                <div class="stat-label">Total Pengguna</div>
+                <div class="stat-value" id="total-users">0</div>
+                <div class="stat-change">Sampai hari ini</div>
+              </div>
+
+              <div class="stat-card courses">
+                <div class="stat-icon">
+                  <i class="fa fa-book"></i>
+                </div>
+                <div class="stat-label">Total Kursus</div>
+                <div class="stat-value" id="total-courses">0</div>
+                <div class="stat-change">Kursus aktif</div>
+              </div>
+
+              <div class="stat-card orders">
+                <div class="stat-icon">
+                  <i class="fa fa-shopping-cart"></i>
+                </div>
+                <div class="stat-label">Total Pesanan</div>
+                <div class="stat-value" id="total-orders">0</div>
+                <div class="stat-change">Semua waktu</div>
+              </div>
+
+              <div class="stat-card revenue">
+                <div class="stat-icon">
+                  <i class="fa fa-money"></i>
+                </div>
+                <div class="stat-label">Total Pendapatan</div>
+                <div class="stat-value" id="total-revenue">Rp 0</div>
+                <div class="stat-change positive">Dari pesanan terbayar</div>
+              </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="chart-container">
+              <h3>Statistik Pendapatan</h3>
+              <div class="chart-placeholder">
+                <i class="fa fa-line-chart"></i> Grafik akan ditampilkan di sini
+              </div>
+            </div>
+          </section>
+
+          <!-- Transactions Section -->
+          <section class="dashboard-section" id="transactions">
+            <div class="table-container">
+              <h3>Daftar Transaksi</h3>
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Pengguna</th>
+                      <th>Kursus</th>
+                      <th>Jumlah</th>
+                      <th>Status</th>
+                      <th>Tanggal</th>
+                    </tr>
+                  </thead>
+                  <tbody id="transactions-table">
+                    <tr>
+                      <td colspan="6" class="empty-state">
+                        <p>Tidak ada data transaksi</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Courses Section -->
+          <section class="dashboard-section" id="courses">
+            <div class="table-container">
+              <h3>Daftar Kursus</h3>
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Judul</th>
+                      <th>Instruktur</th>
+                      <th>Harga</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="courses-table">
+                    <tr>
+                      <td colspan="6" class="empty-state">
+                        <p>Tidak ada data kursus</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Users Section -->
+          <section class="dashboard-section" id="users">
+            <div class="table-container">
+              <h3>Daftar Pengguna</h3>
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Nama Lengkap</th>
+                      <th>Username</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="users-table">
+                    <tr>
+                      <td colspan="6" class="empty-state">
+                        <p>Tidak ada data pengguna</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Earnings Section -->
+          <section class="dashboard-section" id="earnings">
+            <div class="table-container">
+              <h3>Penghasilan Instruktur</h3>
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>ID Kursus</th>
+                      <th>Judul Kursus</th>
+                      <th>Pendapatan</th>
+                      <th>Total Pendaftar</th>
+                    </tr>
+                  </thead>
+                  <tbody id="earnings-table">
+                    <tr>
+                      <td colspan="4" class="empty-state">
+                        <p>Tidak ada data penghasilan</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Settings Section -->
+          <section class="dashboard-section" id="settings">
+            <div style="max-width: 600px">
+              <div class="table-container">
+                <h3>Pengaturan</h3>
+                <form id="settings-form">
+                  <div class="form-group">
+                    <label>Nama Admin</label>
+                    <input type="text" value="Administrator" required />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" value="admin@edumark.com" required />
+                  </div>
+
+                  <div class="form-group">
+                    <label
+                      >Password Baru (Kosongkan jika tidak ingin
+                      mengubah)</label
+                    >
+                    <input
+                      type="password"
+                      placeholder="Masukkan password baru"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Notifikasi Email</label>
+                    <select>
+                      <option selected>Aktif</option>
+                      <option>Nonaktif</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Tema Dashboard</label>
+                    <select>
+                      <option selected>Gelap</option>
+                      <option>Terang</option>
+                      <option>Otomatis</option>
+                    </select>
+                  </div>
+
+                  <button type="submit" class="btn-admin btn-primary-admin">
+                    Simpan Perubahan
+                  </button>
+                  <button type="reset" class="btn-admin btn-secondary-admin">
+                    Batal
+                  </button>
+                </form>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/vendor/jquery-1.12.4.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
+    <script>
+      // Sample data untuk dashboard
+      const dashboardData = {
+        overview: {
+          total_users: 1250,
+          total_courses: 45,
+          total_orders: 320,
+          total_revenue: 15750000,
+        },
+        transactions: [
+          {
+            id: 1,
+            user: "Budi Santoso",
+            course: "Web Development",
+            amount: 99000,
+            status: "paid",
+            date: "2025-11-12",
+          },
+          {
+            id: 2,
+            user: "Siti Nurhaliza",
+            course: "Mobile App Dev",
+            amount: 149000,
+            status: "pending",
+            date: "2025-11-11",
+          },
+          {
+            id: 3,
+            user: "Ahmad Wijaya",
+            course: "Data Science",
+            amount: 199000,
+            status: "paid",
+            date: "2025-11-10",
+          },
+        ],
+        courses: [
+          {
+            id: 1,
+            title: "Web Development Bootcamp",
+            instructor: "Hendra Gunawan",
+            price: 99000,
+            status: "published",
+          },
+          {
+            id: 2,
+            title: "Mobile App Development",
+            instructor: "Siti Khotijah",
+            price: 149000,
+            status: "published",
+          },
+          {
+            id: 3,
+            title: "Data Science Fundamental",
+            instructor: "Dr. Dwiputra",
+            price: 199000,
+            status: "draft",
+          },
+        ],
+        users: [
+          {
+            id: 1,
+            fullname: "Budi Santoso",
+            username: "buditoso",
+            email: "budi@example.com",
+            role: "student",
+          },
+          {
+            id: 2,
+            fullname: "Hendra Gunawan",
+            username: "hendragun",
+            email: "hendra@example.com",
+            role: "instructor",
+          },
+          {
+            id: 3,
+            fullname: "Administrator",
+            username: "admin",
+            email: "admin@edumark.com",
+            role: "admin",
+          },
+        ],
+        earnings: [
+          {
+            course_id: 1,
+            course_title: "Web Development Bootcamp",
+            revenue: 4950000,
+            total_enrollment: 50,
+          },
+          {
+            course_id: 2,
+            course_title: "Mobile App Development",
+            revenue: 3580000,
+            total_enrollment: 24,
+          },
+        ],
+      };
+
+      // Initialize dashboard
+      function initDashboard() {
+        loadOverviewData();
+        loadTransactionsData();
+        loadCoursesData();
+        loadUsersData();
+        loadEarningsData();
+      }
+
+      // Load Overview Data
+      function loadOverviewData() {
+        const data = dashboardData.overview;
+        document.getElementById("total-users").textContent =
+          data.total_users.toLocaleString("id-ID");
+        document.getElementById("total-courses").textContent =
+          data.total_courses;
+        document.getElementById("total-orders").textContent = data.total_orders;
+        document.getElementById("total-revenue").textContent =
+          "Rp " + data.total_revenue.toLocaleString("id-ID");
+      }
+
+      // Load Transactions Data
+      function loadTransactionsData() {
+        const tbody = document.getElementById("transactions-table");
+        tbody.innerHTML = "";
+
+        if (dashboardData.transactions.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="6" class="empty-state"><p>Tidak ada data transaksi</p></td></tr>';
+          return;
+        }
+
+        dashboardData.transactions.forEach((tx) => {
+          const row = `
+                    <tr>
+                        <td>#${tx.id}</td>
+                        <td>${tx.user}</td>
+                        <td>${tx.course}</td>
+                        <td>Rp ${tx.amount.toLocaleString("id-ID")}</td>
+                        <td><span class="status-badge status-${
+                          tx.status
+                        }">${tx.status.toUpperCase()}</span></td>
+                        <td>${tx.date}</td>
+                    </tr>
+                `;
+          tbody.innerHTML += row;
+        });
+      }
+
+      // Load Courses Data
+      function loadCoursesData() {
+        const tbody = document.getElementById("courses-table");
+        tbody.innerHTML = "";
+
+        if (dashboardData.courses.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="6" class="empty-state"><p>Tidak ada data kursus</p></td></tr>';
+          return;
+        }
+
+        dashboardData.courses.forEach((course) => {
+          const row = `
+                    <tr>
+                        <td>#${course.id}</td>
+                        <td>${course.title}</td>
+                        <td>${course.instructor}</td>
+                        <td>Rp ${course.price.toLocaleString("id-ID")}</td>
+                        <td><span class="status-badge status-${
+                          course.status
+                        }">${course.status.toUpperCase()}</span></td>
+                        <td>
+                            <button class="btn-admin btn-secondary-admin" style="padding: 6px 12px; font-size: 12px;">Edit</button>
+                            <button class="btn-admin btn-danger-admin" style="padding: 6px 12px; font-size: 12px;">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+          tbody.innerHTML += row;
+        });
+      }
+
+      // Load Users Data
+      function loadUsersData() {
+        const tbody = document.getElementById("users-table");
+        tbody.innerHTML = "";
+
+        if (dashboardData.users.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="6" class="empty-state"><p>Tidak ada data pengguna</p></td></tr>';
+          return;
+        }
+
+        dashboardData.users.forEach((user) => {
+          const row = `
+                    <tr>
+                        <td>#${user.id}</td>
+                        <td>${user.fullname}</td>
+                        <td>${user.username}</td>
+                        <td>${user.email}</td>
+                        <td><span class="status-badge" style="background: rgba(102, 126, 234, 0.1); color: #667eea;">${user.role.toUpperCase()}</span></td>
+                        <td>
+                            <button class="btn-admin btn-secondary-admin" style="padding: 6px 12px; font-size: 12px;">Edit</button>
+                            <button class="btn-admin btn-danger-admin" style="padding: 6px 12px; font-size: 12px;">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+          tbody.innerHTML += row;
+        });
+      }
+
+      // Load Earnings Data
+      function loadEarningsData() {
+        const tbody = document.getElementById("earnings-table");
+        tbody.innerHTML = "";
+
+        if (dashboardData.earnings.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="4" class="empty-state"><p>Tidak ada data penghasilan</p></td></tr>';
+          return;
+        }
+
+        dashboardData.earnings.forEach((earning) => {
+          const row = `
+                    <tr>
+                        <td>#${earning.course_id}</td>
+                        <td>${earning.course_title}</td>
+                        <td>Rp ${earning.revenue.toLocaleString("id-ID")}</td>
+                        <td>${earning.total_enrollment}</td>
+                    </tr>
+                `;
+          tbody.innerHTML += row;
+        });
+      }
+
+      // Show Section
+      function showSection(sectionId, element) {
+        // Hide all sections
+        document.querySelectorAll(".dashboard-section").forEach((section) => {
+          section.classList.remove("active");
+        });
+
+        // Remove active class from all menu items
+        document.querySelectorAll(".menu-item").forEach((item) => {
+          item.classList.remove("active");
+        });
+
+        // Show selected section
+        document.getElementById(sectionId).classList.add("active");
+        element.classList.add("active");
+
+        // Update page title
+        const titles = {
+          overview: "Dashboard",
+          transactions: "Transaksi",
+          courses: "Kursus",
+          users: "Pengguna",
+          earnings: "Penghasilan",
+          settings: "Pengaturan",
+        };
+        document.getElementById("page-title").textContent = titles[sectionId];
+      }
+
+      // Logout
+      function logout() {
+        if (confirm("Apakah Anda yakin ingin keluar?")) {
+          // akan diintegrasikan dengan backend
+          console.log("Logout");
+          window.location.href = "index.html";
+        }
+      }
+
+      // Settings Form Submit
+      document
+        .getElementById("settings-form")
+        ?.addEventListener("submit", function (e) {
+          e.preventDefault();
+          alert("Pengaturan akan disimpan setelah integrasi dengan backend");
+          // akan diintegrasikan dengan backend
+        });
+
+      // Initialize on page load
+      document.addEventListener("DOMContentLoaded", initDashboard);
+    </script>
+  </body>
+</html>
