@@ -28,12 +28,6 @@ export function Header() {
                                             </ul>
                                         </li>
                                         <li><a href="${basePath}pages/about.html">About</a></li>
-                                        <li><a href="#">blog <i class="ti-angle-down"></i></a>
-                                            <ul class="submenu">
-                                                <li><a href="${basePath}pages/blog.html">blog</a></li>
-                                                <li><a href="${basePath}pages/blog.html">single-blog</a></li>
-                                            </ul>
-                                        </li>
                                         <li><a href="${basePath}pages/contact.html">Contact</a></li>
                                     </ul>
                                 </nav>
@@ -45,12 +39,6 @@ export function Header() {
                                     <i class="flaticon-user"></i>
                                     <span>log in</span>
                                 </a>
-                                <div class="live_chat_btn">
-                                    <a class="boxed_btn_orange" href="#">
-                                        <i class="fa fa-phone"></i>
-                                        <span>+10 378 467 3672</span>
-                                    </a>
-                                </div>
                             </div>
                         </div>
                         <div class="col-12">

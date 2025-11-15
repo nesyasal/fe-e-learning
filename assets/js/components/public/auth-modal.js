@@ -2,7 +2,7 @@ import { registerUser, loginUser } from "../../api/auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const registerForm = document.querySelector("#test-form2");
-  const loginForm = document.querySelector("#login-form");
+  const loginForm = document.querySelector("#test-form");
 
   if (registerForm) {
     registerForm.addEventListener("submit", async (e) => {
