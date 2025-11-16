@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html class="no-js" lang="zxx">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>Buat/Edit Kursus - Edumark</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
+    <link rel="stylesheet" href="assets/css/course-form.css" />
+  </head>
+
+  <body class="admin-body">
+    <div style="padding: 30px">
+      <a href="instructor-dashboard.html" class="back-link"
+        >← Kembali ke Dashboard</a
+      >
+
+      <div class="course-form-container">
+        <h2 id="form-title">Buat Kursus Baru</h2>
+
+        <div id="alert-error" class="alert alert-error"></div>
+        <div id="alert-success" class="alert alert-success"></div>
+
+        <form id="course-form">
+          <div class="form-group">
+            <label for="title">Judul Kursus *</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              required
+              placeholder="Contoh: Web Development Bootcamp"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="description">Deskripsi *</label>
+            <textarea
+              id="description"
+              name="description"
+              required
+              placeholder="Jelaskan apa yang akan dipelajari di kursus ini..."
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="price">Harga (Rp) *</label>
+            <input
+              type="number"
+              id="price"
+              name="price"
+              required
+              placeholder="500000"
+              min="0"
+              step="1000"
+            />
+          </div>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="window.history.back()"
+            >
+              Batal
+            </button>
+            <button type="submit" class="btn btn-primary" id="submit-btn">
+              Simpan Kursus
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/vendor/jquery-1.12.4.min.js"></script>
+    <script type="module">
+      import {
+        createCourse,
+        updateCourse,
+        getProfile,
+      } from "./assets/js/api/instructor.js";
+
+      let courseId = null;
+      let isEditMode = false;
+
+      // Get course ID from URL params if editing
+      function getCourseIdFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get("id");
+      }
+
+      // Load course data if editing
+      async function loadCourseData() {
+        courseId = getCourseIdFromUrl();
+        if (!courseId) {
+          document.getElementById("form-title").textContent =
+            "Buat Kursus Baru";
+          isEditMode = false;
+          return;
+        }
+
+        isEditMode = true;
+        document.getElementById("form-title").textContent = "Edit Kursus";
+        document.getElementById("submit-btn").textContent = "Perbarui Kursus";
+
+        // Note: Fetch course detail from API (implement GET /instructor/courses/:id if needed)
+        // For now, just set edit mode flag
+        console.log("Edit mode for course ID:", courseId);
+      }
+
+      // Handle form submission
+      document
+        .getElementById("course-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const title = document.getElementById("title").value.trim();
+          const description = document
+            .getElementById("description")
+            .value.trim();
+          const price = parseFloat(document.getElementById("price").value);
+
+          if (!title || !description || !price) {
+            showAlert("Semua field harus diisi", "error");
+            return;
+          }
+
+          const submitBtn = document.getElementById("submit-btn");
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Memproses...";
+
+          try {
+            const payload = {
+              title,
+              description,
+              price,
+            };
+
+            let response;
+            if (isEditMode && courseId) {
+              response = await updateCourse(courseId, payload);
+              showAlert("Kursus berhasil diperbarui", "success");
+            } else {
+              response = await createCourse(payload);
+              showAlert(
+                "Kursus berhasil dibuat! Sekarang tambahkan modul.",
+                "success"
+              );
+              setTimeout(() => {
+                const newCourseId = response.ID || response.id;
+                window.location.href = `course-modules.html?id=${newCourseId}`;
+              }, 1500);
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            showAlert("Gagal menyimpan kursus: " + error.message, "error");
+          } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = isEditMode
+              ? "Perbarui Kursus"
+              : "Simpan Kursus";
+          }
+        });
+
+      function showAlert(message, type) {
+        const errorAlert = document.getElementById("alert-error");
+        const successAlert = document.getElementById("alert-success");
+
+        if (type === "error") {
+          errorAlert.textContent = message;
+          errorAlert.style.display = "block";
+          successAlert.style.display = "none";
+        } else {
+          successAlert.textContent = message;
+          successAlert.style.display = "block";
+          errorAlert.style.display = "none";
+        }
+      }
+
+      // Initialize on load
+      document.addEventListener("DOMContentLoaded", loadCourseData);
+    </script>
+  </body>
+</html>

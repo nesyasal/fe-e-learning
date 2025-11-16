@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html class="no-js" lang="zxx">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>Kelola Quiz - Edumark</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
+    <link rel="stylesheet" href="assets/css/course-quiz.css" />
+  </head>
+
+  <body class="admin-body">
+    <div class="quiz-container">
+      <a href="javascript:history.back()" class="back-link">← Kembali</a>
+
+      <div class="header">
+        <h2>
+          Kelola Quiz
+          <span
+            id="module-title"
+            style="color: #667eea; font-size: 18px"
+          ></span>
+        </h2>
+        <button class="btn-add" onclick="openAddQuizModal()">
+          <i class="fa fa-plus"></i> Tambah Quiz
+        </button>
+      </div>
+
+      <div id="alert-error" class="alert alert-error"></div>
+      <div id="alert-success" class="alert alert-success"></div>
+
+      <div class="quizzes-list">
+        <div id="quizzes-list-content">
+          <div class="empty-state">
+            <i class="fa fa-inbox"></i>
+            <p>Belum ada quiz</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add/Edit Quiz Modal -->
+    <div id="quiz-modal" class="modal-backdrop">
+      <div class="modal">
+        <h3 id="modal-title">Tambah Quiz</h3>
+        <form id="quiz-form">
+          <div class="form-group">
+            <label for="quiz-question">Pertanyaan *</label>
+            <textarea
+              id="quiz-question"
+              required
+              placeholder="Tuliskan pertanyaan quiz..."
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Pilihan Jawaban (Harus 4 pilihan) *</label>
+            <div class="options-group" id="options-container">
+              <!-- Options akan ditambahkan via JS -->
+            </div>
+            <button
+              type="button"
+              class="btn-add-option"
+              onclick="addOptionInput()"
+            >
+              + Tambah Pilihan
+            </button>
+          </div>
+
+          <div class="answer-section">
+            <label for="quiz-answer">Jawaban Benar *</label>
+            <select
+              id="quiz-answer"
+              required
+              style="
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                margin-top: 5px;
+              "
+            >
+              <option value="">Pilih jawaban yang benar</option>
+            </select>
+          </div>
+
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn-modal btn-modal-secondary"
+              onclick="closeAddQuizModal()"
+            >
+              Batal
+            </button>
+            <button type="submit" class="btn-modal btn-modal-primary">
+              Simpan Quiz
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/vendor/jquery-1.12.4.min.js"></script>
+    <script>
+      let courseId = null;
+      let moduleId = null;
+      let quizzes = [];
+      let editingQuizId = null;
+      let optionCount = 0;
+
+      // Get course and module ID from URL params
+      function getIdsFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        courseId = params.get("courseId");
+        moduleId = params.get("moduleId");
+      }
+
+      async function loadQuizzes() {
+        getIdsFromUrl();
+        if (!courseId || !moduleId) {
+          showAlert("Course ID atau Module ID tidak ditemukan", "error");
+          return;
+        }
+
+        document.getElementById(
+          "module-title"
+        ).textContent = `(Module #${moduleId})`;
+
+        try {
+          // Load from localStorage for now
+          quizzes = JSON.parse(
+            localStorage.getItem(`module-${moduleId}-quizzes`) || "[]"
+          );
+          renderQuizzes();
+        } catch (err) {
+          console.error("Error loading quizzes:", err);
+          renderQuizzes();
+        }
+      }
+
+      function renderQuizzes() {
+        const container = document.getElementById("quizzes-list-content");
+
+        if (quizzes.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i class="fa fa-inbox"></i>
+              <p>Belum ada quiz. Klik "Tambah Quiz" untuk memulai.</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = quizzes
+          .map(
+            (q, idx) => `
+          <div class="quiz-item">
+            <div class="quiz-header">
+              <h4>Quiz ${idx + 1}</h4>
+              <div>
+                <button class="btn-sm btn-primary-sm" onclick="editQuiz(${idx})">Edit</button>
+                <button class="btn-sm btn-danger-sm" onclick="deleteQuiz(${idx})">Hapus</button>
+              </div>
+            </div>
+            <div class="quiz-question"><strong>Q:</strong> ${q.question}</div>
+            <div class="quiz-options">
+              <strong>Pilihan:</strong>
+              <ul>
+                ${(JSON.parse(q.options || "[]") || [])
+                  .map((opt) => `<li>${opt}</li>`)
+                  .join("")}
+              </ul>
+            </div>
+            <div class="quiz-answer">✓ Jawaban: ${q.answer}</div>
+          </div>
+        `
+          )
+          .join("");
+      }
+
+      window.openAddQuizModal = function () {
+        editingQuizId = null;
+        optionCount = 0;
+        document.getElementById("modal-title").textContent = "Tambah Quiz";
+        document.getElementById("quiz-form").reset();
+        initializeOptions();
+        document.getElementById("quiz-modal").classList.add("active");
+      };
+
+      window.closeAddQuizModal = function () {
+        document.getElementById("quiz-modal").classList.remove("active");
+      };
+
+      function initializeOptions() {
+        optionCount = 4;
+        const container = document.getElementById("options-container");
+        container.innerHTML = "";
+        for (let i = 0; i < 4; i++) {
+          addOptionInput();
+        }
+      }
+
+      window.addOptionInput = function () {
+        if (optionCount >= 4) return; // Max 4 options
+        optionCount++;
+        const container = document.getElementById("options-container");
+        const optionDiv = document.createElement("div");
+        optionDiv.className = "option-input";
+        optionDiv.innerHTML = `
+          <input type="text" class="option-input-field" placeholder="Pilihan ${optionCount}" />
+          <button type="button" onclick="this.parentElement.remove(); optionCount--;">Hapus</button>
+        `;
+        container.appendChild(optionDiv);
+      };
+
+      window.editQuiz = function (index) {
+        const quiz = quizzes[index];
+        if (!quiz) return;
+
+        editingQuizId = index;
+        document.getElementById("modal-title").textContent = "Edit Quiz";
+        document.getElementById("quiz-question").value = quiz.question;
+
+        const options = JSON.parse(quiz.options || "[]");
+        optionCount = 0;
+        const container = document.getElementById("options-container");
+        container.innerHTML = "";
+
+        (options || []).forEach((opt) => {
+          optionCount++;
+          const optionDiv = document.createElement("div");
+          optionDiv.className = "option-input";
+          optionDiv.innerHTML = `
+            <input type="text" class="option-input-field" placeholder="Pilihan ${optionCount}" value="${opt}" />
+            <button type="button" onclick="this.parentElement.remove(); optionCount--;">Hapus</button>
+          `;
+          container.appendChild(optionDiv);
+        });
+
+        updateAnswerSelect();
+        document.getElementById("quiz-answer").value = quiz.answer;
+        document.getElementById("quiz-modal").classList.add("active");
+      };
+
+      window.deleteQuiz = function (index) {
+        if (!confirm("Apakah Anda yakin ingin menghapus quiz ini?")) return;
+        quizzes.splice(index, 1);
+        localStorage.setItem(
+          `module-${moduleId}-quizzes`,
+          JSON.stringify(quizzes)
+        );
+        renderQuizzes();
+        showAlert("Quiz berhasil dihapus", "success");
+      };
+
+      document
+        .getElementById("quiz-form")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const question = document
+            .getElementById("quiz-question")
+            .value.trim();
+          const optionInputs = Array.from(
+            document.querySelectorAll(".option-input-field")
+          );
+          const options = optionInputs
+            .map((inp) => inp.value.trim())
+            .filter((v) => v);
+          const answer = document.getElementById("quiz-answer").value;
+
+          if (!question) {
+            showAlert("Pertanyaan harus diisi", "error");
+            return;
+          }
+
+          if (options.length !== 4) {
+            showAlert("Harus ada tepat 4 pilihan jawaban", "error");
+            return;
+          }
+
+          if (!answer) {
+            showAlert("Pilih jawaban yang benar", "error");
+            return;
+          }
+
+          try {
+            const newQuiz = {
+              id: Date.now(),
+              question,
+              options: JSON.stringify(options),
+              answer,
+              module_id: moduleId,
+            };
+
+            if (editingQuizId !== null) {
+              quizzes[editingQuizId] = newQuiz;
+            } else {
+              quizzes.push(newQuiz);
+            }
+
+            localStorage.setItem(
+              `module-${moduleId}-quizzes`,
+              JSON.stringify(quizzes)
+            );
+            renderQuizzes();
+            closeAddQuizModal();
+            showAlert(
+              editingQuizId !== null
+                ? "Quiz berhasil diperbarui"
+                : "Quiz berhasil ditambahkan",
+              "success"
+            );
+          } catch (error) {
+            showAlert("Gagal menyimpan quiz: " + error.message, "error");
+          }
+        });
+
+      // Update answer dropdown when options change
+      function updateAnswerSelect() {
+        const optionInputs = Array.from(
+          document.querySelectorAll(".option-input-field")
+        );
+        const options = optionInputs
+          .map((inp) => inp.value.trim())
+          .filter((v) => v);
+        const answerSelect = document.getElementById("quiz-answer");
+        const currentValue = answerSelect.value;
+
+        answerSelect.innerHTML =
+          '<option value="">Pilih jawaban yang benar</option>';
+        options.forEach((opt) => {
+          const option = document.createElement("option");
+          option.value = opt;
+          option.textContent = opt;
+          answerSelect.appendChild(option);
+        });
+
+        answerSelect.value = currentValue;
+      }
+
+      // Update answer select when options change
+      document.addEventListener("change", function (e) {
+        if (e.target.classList.contains("option-input-field")) {
+          updateAnswerSelect();
+        }
+      });
+
+      function showAlert(message, type) {
+        const errorAlert = document.getElementById("alert-error");
+        const successAlert = document.getElementById("alert-success");
+
+        if (type === "error") {
+          errorAlert.textContent = message;
+          errorAlert.style.display = "block";
+          successAlert.style.display = "none";
+        } else {
+          successAlert.textContent = message;
+          successAlert.style.display = "block";
+          errorAlert.style.display = "none";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", loadQuizzes);
+    </script>
+  </body>
+</html>
