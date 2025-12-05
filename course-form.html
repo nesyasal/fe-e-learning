@@ -1,189 +1,258 @@
 <!DOCTYPE html>
-<html class="no-js" lang="zxx">
+<html class="no-js" lang="id">
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
-    <title>Buat/Edit Kursus - Edumark</title>
+    <title>Form Kursus - Edumark</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- CSS -->
     <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
-    <link rel="stylesheet" href="assets/css/course-form.css" />
+    <style>
+      .form-wrapper {
+        max-width: 700px;
+        margin: 0 auto;
+      }
+      .back-link {
+        margin-bottom: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        color: #4b5563;
+      }
+      .back-link:hover {
+        color: #111827;
+      }
+    </style>
   </head>
-
   <body class="admin-body">
-    <div style="padding: 30px">
-      <a href="instructor-dashboard.html" class="back-link"
-        >← Kembali ke Dashboard</a
-      >
+    <script>
+      // Guard role instructor
+      (function () {
+        try {
+          const user = JSON.parse(localStorage.getItem("user") || "null");
+          if (!user || user.role !== "instructor") {
+            alert("Akses ditolak: Halaman ini hanya untuk instructor");
+            window.location.href = "index.html";
+          }
+        } catch (e) {
+          window.location.href = "index.html";
+        }
+      })();
+    </script>
 
-      <div class="course-form-container">
-        <h2 id="form-title">Buat Kursus Baru</h2>
-
-        <div id="alert-error" class="alert alert-error"></div>
-        <div id="alert-success" class="alert alert-success"></div>
-
-        <form id="course-form">
-          <div class="form-group">
-            <label for="title">Judul Kursus *</label>
-            <input
-              type="text"
-              id="title"
-              name="title"
-              required
-              placeholder="Contoh: Web Development Bootcamp"
-            />
+    <div class="admin-container">
+      <!-- Sidebar sederhana -->
+      <aside class="admin-sidebar">
+        <div class="logo">
+          <img src="assets/img/logo.png" alt="Edumark Logo" class="logo-img" />
+        </div>
+        <nav class="admin-menu">
+          <div class="menu-item" onclick="goDashboard()">
+            <i class="fa fa-arrow-left"></i>
+            <span>Kembali ke Dashboard</span>
           </div>
+        </nav>
+      </aside>
 
-          <div class="form-group">
-            <label for="description">Deskripsi *</label>
-            <textarea
-              id="description"
-              name="description"
-              required
-              placeholder="Jelaskan apa yang akan dipelajari di kursus ini..."
-            ></textarea>
+      <!-- Main -->
+      <div class="admin-main">
+        <div class="admin-topbar">
+          <h2 id="page-title">Buat Kursus</h2>
+          <div class="admin-topbar-right">
+            <div class="user-profile">
+              <div
+                class="user-profile"
+                style="
+                  background: #667eea;
+                  width: 40px;
+                  height: 40px;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: white;
+                  font-weight: bold;
+                "
+                id="user-avatar"
+              >
+                IN
+              </div>
+              <div class="user-name" id="user-name">Instructor</div>
+            </div>
           </div>
+        </div>
 
-          <div class="form-group">
-            <label for="price">Harga (Rp) *</label>
-            <input
-              type="number"
-              id="price"
-              name="price"
-              required
-              placeholder="500000"
-              min="0"
-              step="1000"
-            />
-          </div>
+        <div class="admin-content">
+          <section class="dashboard-section active">
+            <div class="table-container form-wrapper">
+              <div class="back-link" onclick="goDashboard()">
+                <i class="fa fa-arrow-left"></i><span>Kembali</span>
+              </div>
+              <h3 id="form-title">Buat Kursus Baru</h3>
+              <p id="form-subtitle" style="color: #6b7280">
+                Isi judul dan deskripsi kursus. Harga dan pengaturan lainnya
+                bisa diatur terpisah (jika diperlukan).
+              </p>
 
-          <div class="form-actions">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              onclick="window.history.back()"
-            >
-              Batal
-            </button>
-            <button type="submit" class="btn btn-primary" id="submit-btn">
-              Simpan Kursus
-            </button>
-          </div>
-        </form>
+              <form id="course-form" style="margin-top: 15px">
+                <input type="hidden" id="course-id" />
+
+                <div class="form-group">
+                  <label>Judul Kursus</label>
+                  <input
+                    type="text"
+                    id="course-title"
+                    class="form-control"
+                    placeholder="Contoh: Dasar Pemrograman Python"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label>Deskripsi Kursus</label>
+                  <textarea
+                    id="course-description"
+                    class="form-control"
+                    rows="5"
+                    placeholder="Jelaskan secara singkat apa yang akan dipelajari di kursus ini..."
+                    required
+                  ></textarea>
+                </div>
+
+                <div
+                  style="
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 10px;
+                    margin-top: 10px;
+                  "
+                >
+                  <button
+                    type="button"
+                    class="btn-admin btn-secondary-admin"
+                    onclick="goDashboard()"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    class="btn-admin btn-primary-admin"
+                    id="btn-submit"
+                  >
+                    Simpan Kursus
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+        </div>
       </div>
     </div>
 
     <!-- Scripts -->
     <script src="assets/js/vendor/jquery-1.12.4.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
     <script type="module">
       import {
         createCourse,
         updateCourse,
+        getCourseDetail,
         getProfile,
       } from "./assets/js/api/instructor.js";
 
-      let courseId = null;
-      let isEditMode = false;
-
-      // Get course ID from URL params if editing
-      function getCourseIdFromUrl() {
-        const params = new URLSearchParams(window.location.search);
-        return params.get("id");
+      function getQueryParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
       }
 
-      // Load course data if editing
-      async function loadCourseData() {
-        courseId = getCourseIdFromUrl();
-        if (!courseId) {
-          document.getElementById("form-title").textContent =
-            "Buat Kursus Baru";
-          isEditMode = false;
-          return;
+      window.goDashboard = function () {
+        window.location.href = "instructor-dashboard.html";
+      };
+
+      async function initPage() {
+        const courseId = getQueryParam("id");
+
+        // set nama instructor di header
+        try {
+          const profile = await getProfile();
+          const fullName = profile.full_name || profile.fullName || "IN";
+          const initials = fullName
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 2);
+          document.getElementById("user-avatar").textContent = initials;
+          document.getElementById("user-name").textContent =
+            fullName || "Instructor";
+        } catch (e) {}
+
+        if (courseId) {
+          // Edit mode
+          document.getElementById("course-id").value = courseId;
+          document.getElementById("form-title").textContent = "Edit Kursus";
+          document.getElementById("page-title").textContent = "Edit Kursus";
+          document.getElementById("form-subtitle").textContent =
+            "Perbarui judul dan deskripsi kursus.";
+
+          try {
+            const data = await getCourseDetail(courseId);
+            const course = data.course || data;
+            document.getElementById("course-title").value =
+              course.title || course.Title || "";
+            document.getElementById("course-description").value =
+              course.description || course.Description || "";
+          } catch (err) {
+            console.error(err);
+            alert("Gagal memuat data kursus.");
+          }
         }
-
-        isEditMode = true;
-        document.getElementById("form-title").textContent = "Edit Kursus";
-        document.getElementById("submit-btn").textContent = "Perbarui Kursus";
-
-        // Note: Fetch course detail from API (implement GET /instructor/courses/:id if needed)
-        // For now, just set edit mode flag
-        console.log("Edit mode for course ID:", courseId);
       }
 
-      // Handle form submission
       document
         .getElementById("course-form")
-        .addEventListener("submit", async function (e) {
+        .addEventListener("submit", async (e) => {
           e.preventDefault();
-
-          const title = document.getElementById("title").value.trim();
+          const id = document.getElementById("course-id").value;
+          const title = document.getElementById("course-title").value.trim();
           const description = document
-            .getElementById("description")
+            .getElementById("course-description")
             .value.trim();
-          const price = parseFloat(document.getElementById("price").value);
 
-          if (!title || !description || !price) {
-            showAlert("Semua field harus diisi", "error");
+          if (!title || !description) {
+            alert("Judul dan deskripsi wajib diisi.");
             return;
           }
 
-          const submitBtn = document.getElementById("submit-btn");
-          submitBtn.disabled = true;
-          submitBtn.textContent = "Memproses...";
+          const payload = { title, description };
+          const btn = document.getElementById("btn-submit");
+          btn.disabled = true;
+          btn.textContent = "Menyimpan...";
 
           try {
-            const payload = {
-              title,
-              description,
-              price,
-            };
-
-            let response;
-            if (isEditMode && courseId) {
-              response = await updateCourse(courseId, payload);
-              showAlert("Kursus berhasil diperbarui", "success");
+            if (id) {
+              await updateCourse(id, payload);
+              alert("Kursus berhasil diperbarui.");
             } else {
-              response = await createCourse(payload);
-              showAlert(
-                "Kursus berhasil dibuat! Sekarang tambahkan modul.",
-                "success"
-              );
-              setTimeout(() => {
-                const newCourseId = response.ID || response.id;
-                window.location.href = `course-modules.html?id=${newCourseId}`;
-              }, 1500);
+              await createCourse(payload);
+              alert("Kursus berhasil dibuat.");
             }
-          } catch (error) {
-            console.error("Error:", error);
-            showAlert("Gagal menyimpan kursus: " + error.message, "error");
+            window.location.href = "instructor-dashboard.html";
+          } catch (err) {
+            console.error(err);
+            alert("Gagal menyimpan kursus: " + err.message);
           } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = isEditMode
-              ? "Perbarui Kursus"
-              : "Simpan Kursus";
+            btn.disabled = false;
+            btn.textContent = "Simpan Kursus";
           }
         });
 
-      function showAlert(message, type) {
-        const errorAlert = document.getElementById("alert-error");
-        const successAlert = document.getElementById("alert-success");
-
-        if (type === "error") {
-          errorAlert.textContent = message;
-          errorAlert.style.display = "block";
-          successAlert.style.display = "none";
-        } else {
-          successAlert.textContent = message;
-          successAlert.style.display = "block";
-          errorAlert.style.display = "none";
-        }
-      }
-
-      // Initialize on load
-      document.addEventListener("DOMContentLoaded", loadCourseData);
+      document.addEventListener("DOMContentLoaded", initPage);
     </script>
   </body>
 </html>

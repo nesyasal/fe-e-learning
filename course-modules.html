@@ -1,208 +1,798 @@
 <!DOCTYPE html>
-<html class="no-js" lang="zxx">
+<html class="no-js" lang="id">
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
-    <title>Kelola Module - Edumark</title>
+    <title>Kelola Modul Kursus - Edumark</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- CSS -->
     <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
-    <link rel="stylesheet" href="assets/css/course-modules.css" />
+    <style>
+      .module-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .module-header h3 {
+        margin: 0;
+      }
+      .modal-backdrop-custom {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+      }
+      .modal-backdrop-custom.active {
+        display: flex;
+      }
+      .modal-box {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        width: 100%;
+        max-width: 700px;
+        max-height: 85vh;
+        overflow-y: auto;
+      }
+      .modal-box h4 {
+        margin-top: 0;
+        margin-bottom: 15px;
+      }
+      .quiz-row {
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 10px;
+        margin-bottom: 10px;
+        background: #f9fafb;
+      }
+      .quiz-row-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+      }
+      .form-group-inline {
+        display: flex;
+        gap: 10px;
+      }
+      .form-group-inline > div {
+        flex: 1;
+      }
+      .quiz-item-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 10px;
+        margin-bottom: 8px;
+        background: #f3f4f6;
+      }
+      .quiz-item-card h5 {
+        margin: 0 0 6px 0;
+      }
+      .badge-module {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        background: #eef2ff;
+        color: #4338ca;
+      }
+    </style>
   </head>
-
   <body class="admin-body">
-    <div class="modules-container">
-      <a href="instructor-dashboard.html" class="back-link"
-        >← Kembali ke Dashboard</a
-      >
+    <script>
+      // Guard role instructor
+      (function () {
+        try {
+          const user = JSON.parse(localStorage.getItem("user") || "null");
+          if (!user || user.role !== "instructor") {
+            alert("Akses ditolak: Halaman ini hanya untuk instructor");
+            window.location.href = "index.html";
+          }
+        } catch (e) {
+          window.location.href = "index.html";
+        }
+      })();
+    </script>
 
-      <div class="header">
-        <h2>
-          Kelola Module
-          <span
-            id="course-title"
-            style="color: #667eea; font-size: 18px"
-          ></span>
-        </h2>
-        <button class="btn-add" onclick="goToAddModule()">
-          <i class="fa fa-plus"></i> Tambah Module
-        </button>
-      </div>
-
-      <div id="alert-error" class="alert alert-error"></div>
-      <div id="alert-success" class="alert alert-success"></div>
-
-      <div class="modules-list">
-        <div id="modules-list-content">
-          <div class="empty-state">
-            <i class="fa fa-inbox"></i>
-            <p>Belum ada module</p>
+    <div class="admin-container">
+      <!-- Sidebar -->
+      <aside class="admin-sidebar">
+        <div class="logo">
+          <img src="assets/img/logo.png" alt="Edumark Logo" class="logo-img" />
+        </div>
+        <nav class="admin-menu">
+          <div class="menu-item" onclick="goDashboard()">
+            <i class="fa fa-arrow-left"></i>
+            <span>Kembali ke Dashboard</span>
           </div>
+        </nav>
+      </aside>
+
+      <!-- Main -->
+      <div class="admin-main">
+        <div class="admin-topbar">
+          <h2 id="page-title">Kelola Modul Kursus</h2>
+          <div class="admin-topbar-right">
+            <div class="user-profile">
+              <div
+                class="user-profile"
+                style="
+                  background: #667eea;
+                  width: 40px;
+                  height: 40px;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: white;
+                  font-weight: bold;
+                "
+                id="user-avatar"
+              >
+                IN
+              </div>
+              <div class="user-name" id="user-name">Instructor</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-content">
+          <section class="dashboard-section active" id="modules-section">
+            <div class="table-container">
+              <div class="module-header">
+                <div>
+                  <h3 id="course-title">Kursus: -</h3>
+                  <p id="course-desc" style="margin: 0; color: #6b7280"></p>
+                </div>
+                <button
+                  class="btn-admin btn-primary-admin"
+                  style="padding: 10px 20px"
+                  onclick="openModuleModal()"
+                >
+                  <i class="fa fa-plus"></i> Tambah Modul
+                </button>
+              </div>
+
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Judul Modul</th>
+                      <th>Urutan</th>
+                      <th>PDF</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="modules-table">
+                    <tr>
+                      <td colspan="5" class="empty-state">
+                        <p>Tidak ada modul</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Panel Quiz -->
+            <div class="table-container" style="margin-top: 30px">
+              <h3 id="quiz-panel-title">Quiz Modul</h3>
+              <p id="quiz-panel-subtitle" style="color: #6b7280">
+                Pilih modul dan klik "Kelola Quiz" untuk mulai menambah quiz.
+              </p>
+              <div id="quiz-list-container"></div>
+            </div>
+          </section>
         </div>
       </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Modal: Tambah/Edit Modul -->
+    <div id="module-modal" class="modal-backdrop-custom">
+      <div class="modal-box">
+        <h4 id="module-modal-title">Tambah Modul</h4>
+        <form id="module-form">
+          <input type="hidden" id="module-id" />
+          <div class="form-group">
+            <label>Judul Modul</label>
+            <input
+              type="text"
+              id="module-title"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>Urutan</label>
+            <input
+              type="number"
+              id="module-order"
+              class="form-control"
+              min="1"
+              value="1"
+            />
+          </div>
+          <div class="form-group">
+            <label>File PDF (opsional / akan mengganti file lama)</label>
+            <input type="file" id="module-pdf" class="form-control" />
+            <small id="module-pdf-info" style="color: #6b7280"></small>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              justify-content: flex-end;
+              gap: 10px;
+              margin-top: 10px;
+            "
+          >
+            <button
+              type="button"
+              class="btn-admin btn-secondary-admin"
+              onclick="closeModuleModal()"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              class="btn-admin btn-primary-admin"
+              id="btn-save-module"
+            >
+              Simpan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Kelola Quiz -->
+    <div id="quiz-modal" class="modal-backdrop-custom">
+      <div class="modal-box">
+        <h4 id="quiz-modal-title">Kelola Quiz</h4>
+        <p id="quiz-modal-sub" style="color: #6b7280; margin-bottom: 10px"></p>
+
+        <!-- Quiz yang sudah ada -->
+        <div id="existing-quiz-list" style="margin-bottom: 15px"></div>
+
+        <hr />
+
+        <h5>Tambah Quiz Baru</h5>
+        <div id="quiz-form-list"></div>
+        <button
+          type="button"
+          class="btn-admin btn-secondary-admin"
+          style="margin: 10px 0"
+          onclick="addQuizRow()"
+        >
+          <i class="fa fa-plus"></i> Tambah Baris Quiz
+        </button>
+
+        <div
+          style="
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+          "
+        >
+          <button
+            type="button"
+            class="btn-admin btn-secondary-admin"
+            onclick="closeQuizModal()"
+          >
+            Tutup
+          </button>
+          <button
+            type="button"
+            class="btn-admin btn-primary-admin"
+            onclick="submitQuizList()"
+          >
+            Simpan Quiz
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="assets/js/vendor/jquery-1.12.4.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
     <script type="module">
       import {
-        getCoursDetail,
+        getCourseDetail,
+        addModule,
+        editModule,
         deleteModule,
+        addQuiz,
+        getModuleQuizzes,
+        getProfile,
       } from "./assets/js/api/instructor.js";
 
-      let courseId = null;
-      let modules = [];
+      // Expose for onclick
+      window.openModuleModal = openModuleModal;
+      window.closeModuleModal = closeModuleModal;
+      window.editModuleClick = editModuleClick;
+      window.deleteModuleClick = deleteModuleClick;
+      window.previewPDF = previewPDF;
+      window.openQuizModal = openQuizModal;
+      window.closeQuizModal = closeQuizModal;
+      window.addQuizRow = addQuizRow;
+      window.removeQuizRow = removeQuizRow;
+      window.submitQuizList = submitQuizList;
+      window.goDashboard = function () {
+        window.location.href = "instructor-dashboard.html";
+      };
 
-      // Get course ID from URL params
-      function getCourseIdFromUrl() {
-        const params = new URLSearchParams(window.location.search);
-        return params.get("id");
+      // State
+      let currentCourseId = null;
+      let currentCourse = null;
+      let currentModules = [];
+      let currentQuizModuleId = null;
+      let currentQuizModuleTitle = "";
+      let quizRowIndex = 0;
+
+      function getQueryParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
       }
 
-      async function loadModules() {
-        courseId = getCourseIdFromUrl();
-        if (!courseId) {
-          showAlert("Course ID tidak ditemukan", "error");
+      function getFirst() {
+        for (let i = 0; i < arguments.length; i++) {
+          const v = arguments[i];
+          if (v !== undefined && v !== null && v !== "") return v;
+        }
+        return "";
+      }
+
+      function getId(obj) {
+        return getFirst(obj.id, obj.ID);
+      }
+
+      function formatDateVal(d) {
+        if (!d) return "";
+        const dt = new Date(d);
+        if (!isNaN(dt)) return dt.toLocaleDateString("id-ID");
+        return String(d);
+      }
+
+      async function initPage() {
+        currentCourseId = getQueryParam("id");
+        if (!currentCourseId) {
+          alert("Course ID tidak ditemukan di URL.");
+          window.location.href = "instructor-dashboard.html";
           return;
         }
+
+        // set nama instructor di header
+        try {
+          const profile = await getProfile();
+          const fullName = profile.full_name || profile.fullName || "IN";
+          const initials = fullName
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 2);
+          document.getElementById("user-avatar").textContent = initials;
+          document.getElementById("user-name").textContent =
+            fullName || "Instructor";
+        } catch (e) {}
+
+        await loadCourseDetail();
+      }
+
+      async function loadCourseDetail() {
+        try {
+          const data = await getCourseDetail(currentCourseId);
+          currentCourse = data.course || data;
+          currentModules = data.modules || [];
+
+          document.getElementById("course-title").textContent =
+            "Kursus: " + (currentCourse.title || currentCourse.Title || "-");
+          document.getElementById("course-desc").textContent =
+            currentCourse.description ||
+            currentCourse.Description ||
+            "Tidak ada deskripsi.";
+
+          renderModulesTable();
+          renderQuizPanel();
+        } catch (err) {
+          console.error(err);
+          alert("Gagal mengambil data course.");
+        }
+      }
+
+      function renderModulesTable() {
+        const tbody = document.getElementById("modules-table");
+        tbody.innerHTML = "";
+
+        if (!currentModules || currentModules.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" class="empty-state"><p>Tidak ada modul</p></td></tr>';
+          return;
+        }
+
+        currentModules
+          .slice()
+          .sort((a, b) => (a.order || a.Order || 0) - (b.order || b.Order || 0))
+          .forEach((m) => {
+            const id = m.id || m.ID;
+            const title = m.title || m.Title;
+            const order = m.order || m.Order || 0;
+            const pdfUrl = m.pdf_url || m.PDFUrl || "";
+
+            const pdfLabel = pdfUrl
+              ? `<a href="javascript:void(0)" onclick="previewPDF(${id})">Lihat</a>`
+              : "<span style='color:#9ca3af'>Belum ada</span>";
+
+            const row = `
+              <tr>
+                <td>#${id}</td>
+                <td>${title}</td>
+                <td>${order}</td>
+                <td>${pdfLabel}</td>
+                <td>
+                  <button class="btn-admin btn-secondary-admin" style="padding:4px 10px;font-size:12px" onclick="editModuleClick(${id})">Edit</button>
+                  <button class="btn-admin btn-secondary-admin" style="padding:4px 10px;font-size:12px;margin-left:5px" onclick="deleteModuleClick(${id})">Hapus</button>
+                  <button class="btn-admin btn-secondary-admin" style="padding:4px 10px;font-size:12px;margin-left:5px" onclick="openQuizModal(${id})">Kelola Quiz</button>
+                </td>
+              </tr>
+            `;
+            tbody.innerHTML += row;
+          });
+      }
+
+      function renderQuizPanel() {
+        const container = document.getElementById("quiz-list-container");
+        container.innerHTML = "";
+
+        if (!currentModules || currentModules.length === 0) {
+          container.innerHTML = `<p style="color:#6b7280">Belum ada modul.</p>`;
+          return;
+        }
+
+        currentModules.forEach((m) => {
+          const quizzes = m.quizzes || [];
+
+          const div = document.createElement("div");
+          div.className = "quiz-item-card";
+          div.style.marginBottom = "12px";
+
+          let html = `
+            <h4 style="margin:0 0 5px 0">Modul: ${m.title}</h4>
+            <p style="margin:0 0 5px 0"><strong>Total Quiz:</strong> ${quizzes.length}</p>
+          `;
+
+          if (quizzes.length === 0) {
+            html += `<p style="color:#6b7280">Belum ada quiz.</p>`;
+          } else {
+            quizzes.forEach((q, i) => {
+              let opts = [];
+              try {
+                opts = JSON.parse(q.options || "[]");
+              } catch (e) {
+                opts = [];
+              }
+
+              html += `
+                <div style="border:1px solid #e5e7eb; padding:8px; margin:6px 0; border-radius:6px">
+                  <strong>Q${i + 1}:</strong> ${q.question}<br>
+                  <strong>Jawaban Benar:</strong> ${q.answer}
+                </div>
+              `;
+            });
+          }
+
+          html += `
+            <button class="btn-admin btn-secondary-admin"
+              onclick="openQuizModal(${m.id})"
+              style="margin-top:8px">
+              Kelola Quiz
+            </button>
+          `;
+
+          div.innerHTML = html;
+          container.appendChild(div);
+        });
+      }
+
+
+      // Preview PDF (endpoint view-pdf di backend-mu)
+      function previewPDF(moduleId) {
+        const url = `http://127.0.0.1:8080/api/modules/${moduleId}/view-pdf`;
+        window.open(url, "_blank");
+      }
+
+      // MODAL MODULE
+
+      function openModuleModal(moduleId = null) {
+        const modal = document.getElementById("module-modal");
+        const idInput = document.getElementById("module-id");
+        const titleInput = document.getElementById("module-title");
+        const orderInput = document.getElementById("module-order");
+        const pdfInput = document.getElementById("module-pdf");
+        const infoPdf = document.getElementById("module-pdf-info");
+
+        pdfInput.value = "";
+        infoPdf.textContent = "";
+
+        if (moduleId) {
+          const m = currentModules.find(
+            (mm) => String(mm.id || mm.ID) === String(moduleId)
+          );
+          if (!m) return;
+          idInput.value = moduleId;
+          titleInput.value = m.title || m.Title || "";
+          orderInput.value = m.order || m.Order || 1;
+          document.getElementById("module-modal-title").textContent =
+            "Edit Modul";
+          if (m.pdf_url || m.PDFUrl) {
+            infoPdf.textContent =
+              "PDF saat ini sudah ada. Mengunggah file baru akan mengganti file lama.";
+          }
+        } else {
+          idInput.value = "";
+          titleInput.value = "";
+          orderInput.value = 1;
+          document.getElementById("module-modal-title").textContent =
+            "Tambah Modul";
+        }
+
+        modal.classList.add("active");
+      }
+
+      function closeModuleModal() {
+        document.getElementById("module-modal").classList.remove("active");
+      }
+
+      document
+        .getElementById("module-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const id = document.getElementById("module-id").value;
+          const title = document.getElementById("module-title").value.trim();
+          const order = document.getElementById("module-order").value;
+          const pdfFile = document.getElementById("module-pdf").files[0];
+
+          if (!title) {
+            alert("Judul modul wajib diisi.");
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("title", title);
+          if (order) formData.append("order", order);
+          if (pdfFile) {
+            formData.append("pdf", pdfFile);
+          }
+
+          const btn = document.getElementById("btn-save-module");
+          btn.disabled = true;
+          btn.textContent = "Menyimpan...";
+
+          try {
+            if (id) {
+              await editModule(currentCourseId, id, formData);
+            } else {
+              await addModule(currentCourseId, formData);
+            }
+            await loadCourseDetail();
+            closeModuleModal();
+          } catch (err) {
+            console.error(err);
+            alert("Gagal menyimpan modul: " + err.message);
+          } finally {
+            btn.disabled = false;
+            btn.textContent = "Simpan";
+          }
+        });
+
+      function editModuleClick(moduleId) {
+        openModuleModal(moduleId);
+      }
+
+      async function deleteModuleClick(moduleId) {
+        if (!confirm("Yakin ingin menghapus modul ini?")) return;
+        try {
+          await deleteModule(currentCourseId, moduleId);
+          await loadCourseDetail();
+        } catch (err) {
+          console.error(err);
+          alert("Gagal menghapus modul: " + err.message);
+        }
+      }
+
+      // ==========
+      // MODAL QUIZ
+      // ==========
+
+      async function openQuizModal(moduleId) {
+        currentQuizModuleId = moduleId;
+        const module = currentModules.find(
+          (m) => String(m.id || m.ID) === String(moduleId)
+        );
+        currentQuizModuleTitle = module ? module.title || module.Title : "";
 
         document.getElementById(
-          "course-title"
-        ).textContent = `(Kursus #${courseId})`;
+          "quiz-modal-title"
+        ).textContent = `Kelola Quiz - Modul: ${currentQuizModuleTitle}`;
+        document.getElementById(
+          "quiz-modal-sub"
+        ).textContent = `Tambahkan beberapa pertanyaan sekaligus untuk modul ini.`;
 
+        // Reset form quiz baru
+        const quizFormList = document.getElementById("quiz-form-list");
+        quizFormList.innerHTML = "";
+        quizRowIndex = 0;
+        addQuizRow();
+
+        // Load quiz yang sudah ada (kalau endpoint GET tersedia)
+        const existingContainer = document.getElementById("existing-quiz-list");
+        existingContainer.innerHTML = "<p>Memuat quiz...</p>";
         try {
-          // Fetch course detail which includes modules
-          const courseData = await getCoursDetail(courseId);
-          modules = courseData.modules || [];
-          renderModules();
-        } catch (err) {
-          console.error("Error loading modules:", err);
-          // Fallback to localStorage for offline support
-          modules = JSON.parse(
-            localStorage.getItem(`course-${courseId}-modules`) || "[]"
+          const quizzes = await getModuleQuizzes(
+            currentCourseId,
+            currentQuizModuleId
           );
-          renderModules();
+          if (!quizzes || quizzes.length === 0) {
+            existingContainer.innerHTML =
+              "<p style='color:#6b7280'>Belum ada quiz untuk modul ini.</p>";
+          } else {
+            existingContainer.innerHTML = "";
+            quizzes.forEach((q, idx) => {
+              let opts = [];
+              try {
+                opts = JSON.parse(q.options || q.Options || "[]");
+              } catch (e) {
+                opts = [];
+              }
+              const div = document.createElement("div");
+              div.className = "quiz-item-card";
+              div.innerHTML = `
+                <h5>Q${idx + 1}. ${q.question || q.Question}</h5>
+                <div><strong>Opsi:</strong> ${
+                  opts.length ? opts.join(" | ") : "-"
+                }</div>
+                <div><strong>Jawaban benar:</strong> ${
+                  q.answer || q.Answer || "-"
+                }</div>
+                <span class="badge-module">ID: #${q.id || q.ID}</span>
+              `;
+              existingContainer.appendChild(div);
+            });
+          }
+        } catch (err) {
+          console.error(err);
+          existingContainer.innerHTML =
+            "<p style='color:#ef4444'>Gagal memuat quiz.</p>";
         }
+
+        document.getElementById("quiz-modal").classList.add("active");
       }
 
-      function renderModules() {
-        const container = document.getElementById("modules-list-content");
+      function closeQuizModal() {
+        document.getElementById("quiz-modal").classList.remove("active");
+        currentQuizModuleId = null;
+        currentQuizModuleTitle = "";
+      }
 
-        if (modules.length === 0) {
-          container.innerHTML = `
-            <div class="empty-state">
-              <i class="fa fa-inbox"></i>
-              <p>Belum ada module. Klik "Tambah Module" untuk memulai.</p>
+      function addQuizRow() {
+        quizRowIndex++;
+        const container = document.getElementById("quiz-form-list");
+        const div = document.createElement("div");
+        div.className = "quiz-row";
+        div.dataset.index = quizRowIndex;
+        div.innerHTML = `
+          <div class="quiz-row-header">
+            <strong>Quiz #${quizRowIndex}</strong>
+            <button type="button" class="btn-admin btn-secondary-admin" style="padding:2px 8px;font-size:11px" onclick="removeQuizRow(${quizRowIndex})">
+              Hapus
+            </button>
+          </div>
+          <div class="form-group">
+            <label>Pertanyaan</label>
+            <input type="text" class="form-control quiz-question" required />
+          </div>
+          <div class="form-group-inline">
+            <div>
+              <label>Opsi A</label>
+              <input type="text" class="form-control quiz-opt-a" required />
             </div>
-          `;
-          return;
-        }
-
-        const sorted = [...modules].sort(
-          (a, b) => (a.order || 0) - (b.order || 0)
-        );
-        container.innerHTML = sorted
-          .map(
-            (m) => `
-          <div class="module-item">
-            <div class="module-info">
-              <h4>#${m.order || "-"} ${m.title}</h4>
-              <p>${m.pdf_url ? "📄 Ada PDF" : "Tanpa PDF"}</p>
-            </div>
-            <div class="module-actions">
-              <button class="btn-sm btn-primary-sm" onclick="editModule(${
-                m.id || "null"
-              })">Edit</button>
-              <button class="btn-sm btn-primary-sm" onclick="goToQuizzes(${
-                m.id || "null"
-              })">Quiz</button>
-              <button class="btn-sm btn-danger-sm" onclick="deleteModule(${
-                m.id || "null"
-              })">Hapus</button>
+            <div>
+              <label>Opsi B</label>
+              <input type="text" class="form-control quiz-opt-b" required />
             </div>
           </div>
-        `
-          )
-          .join("");
+          <div class="form-group-inline" style="margin-top:8px">
+            <div>
+              <label>Opsi C</label>
+              <input type="text" class="form-control quiz-opt-c" required />
+            </div>
+            <div>
+              <label>Opsi D</label>
+              <input type="text" class="form-control quiz-opt-d" required />
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:8px">
+            <label>Jawaban Benar</label>
+            <select class="form-control quiz-answer">
+              <option value="0">Opsi A</option>
+              <option value="1">Opsi B</option>
+              <option value="2">Opsi C</option>
+              <option value="3">Opsi D</option>
+            </select>
+          </div>
+        `;
+        container.appendChild(div);
       }
 
-      window.goToAddModule = function () {
-        const courseId = getCourseIdFromUrl();
-        if (!courseId) {
-          showAlert("Course ID tidak ditemukan", "error");
+      function removeQuizRow(idx) {
+        const container = document.getElementById("quiz-form-list");
+        const row = container.querySelector(`.quiz-row[data-index="${idx}"]`);
+        if (row) container.removeChild(row);
+      }
+
+      async function submitQuizList() {
+        if (!currentQuizModuleId) {
+          alert("Modul belum dipilih.");
           return;
         }
-        window.location.href = `module-form.html?courseId=${courseId}`;
-      };
 
-      window.editModule = function (id) {
-        const courseId = getCourseIdFromUrl();
-        if (!courseId) {
-          showAlert("Course ID tidak ditemukan", "error");
+        const container = document.getElementById("quiz-form-list");
+        const rows = Array.from(container.querySelectorAll(".quiz-row"));
+        if (rows.length === 0) {
+          alert("Tambahkan minimal satu quiz sebelum menyimpan.");
           return;
         }
-        window.location.href = `module-form.html?courseId=${courseId}&moduleId=${id}`;
-      };
 
-      window.deleteModule = async function (id) {
-        if (!confirm("Apakah Anda yakin ingin menghapus module ini?")) return;
-
-        try {
-          // Call API to delete module
-          await deleteModule(courseId, id);
-
-          // Remove from local modules list
-          modules = modules.filter((m) => m.id !== id);
-
-          // Update localStorage as backup
-          localStorage.setItem(
-            `course-${courseId}-modules`,
-            JSON.stringify(modules)
+        const quizList = [];
+        for (const row of rows) {
+          const question = row
+            .querySelector(".quiz-question")
+            .value.trim();
+          const optA = row.querySelector(".quiz-opt-a").value.trim();
+          const optB = row.querySelector(".quiz-opt-b").value.trim();
+          const optC = row.querySelector(".quiz-opt-c").value.trim();
+          const optD = row.querySelector(".quiz-opt-d").value.trim();
+          const answerIndex = parseInt(
+            row.querySelector(".quiz-answer").value,
+            10
           );
 
-          renderModules();
-          showAlert("Module berhasil dihapus", "success");
-        } catch (error) {
-          console.error("Error deleting module:", error);
-          showAlert("Gagal menghapus module: " + error.message, "error");
+          if (!question || !optA || !optB || !optC || !optD) {
+            alert("Semua field pertanyaan dan opsi harus diisi.");
+            return;
+          }
+
+          const options = [optA, optB, optC, optD];
+          const answerText = options[answerIndex];
+
+          quizList.push({
+            question,
+            options,
+            answer: answerText, // sesuai contoh: "Jakarta", "Thomas Edison", dll.
+          });
         }
-      };
 
-      window.goToQuizzes = function (moduleId) {
-        if (!moduleId) {
-          showAlert("Simpan module terlebih dahulu", "error");
-          return;
-        }
-        window.location.href = `course-quiz.html?courseId=${courseId}&moduleId=${moduleId}`;
-      };
+        try {
+          await addQuiz(currentCourseId, currentQuizModuleId, quizList);
+          alert("Quiz berhasil disimpan.");
 
-      function showAlert(message, type) {
-        const errorAlert = document.getElementById("alert-error");
-        const successAlert = document.getElementById("alert-success");
-
-        if (type === "error") {
-          errorAlert.textContent = message;
-          errorAlert.style.display = "block";
-          successAlert.style.display = "none";
-        } else {
-          successAlert.textContent = message;
-          successAlert.style.display = "block";
-          errorAlert.style.display = "none";
+          // reload daftar quiz yang sudah ada
+          openQuizModal(currentQuizModuleId);
+        } catch (err) {
+          console.error(err);
+          alert("Gagal menyimpan quiz: " + err.message);
         }
       }
 
-      // Reload modules when page becomes visible (user returns from module-form page)
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") {
-          loadModules();
-        }
-      });
-
-      document.addEventListener("DOMContentLoaded", loadModules);
-    </script>
+      document.addEventListener("DOMContentLoaded", initPage);
     </script>
   </body>
 </html>
