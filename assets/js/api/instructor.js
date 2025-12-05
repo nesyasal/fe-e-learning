@@ -1,6 +1,10 @@
 // assets/js/api/instructor.js
 import { apiFetch } from "./config.js";
 
+// =====================
+// INSTRUCTOR DASHBOARD
+// =====================
+
 export async function getInstructorEarnings() {
   return apiFetch("/instructor/earnings", { method: "GET" });
 }
@@ -17,6 +21,12 @@ export async function getProfile() {
   return apiFetch("/auth/me", { method: "GET" });
 }
 
+// =====================
+// COURSE CRUD (INSTRUCTOR)
+// =====================
+
+// Create course
+// body: { title: string, description: string }
 export async function createCourse(courseData) {
   return apiFetch("/instructor/courses", {
     method: "POST",
@@ -24,6 +34,8 @@ export async function createCourse(courseData) {
   });
 }
 
+// Update course
+// body: { title: string, description: string }
 export async function updateCourse(courseId, courseData) {
   return apiFetch(`/instructor/courses/${courseId}`, {
     method: "PUT",
@@ -31,12 +43,24 @@ export async function updateCourse(courseId, courseData) {
   });
 }
 
+// Delete course
 export async function deleteCourse(courseId) {
   return apiFetch(`/instructor/courses/${courseId}`, { method: "DELETE" });
 }
 
+// Ambil detail course (termasuk modules dari backend GetCourseDetail)
+export async function getCourseDetail(id) {
+  return apiFetch(`/instructor/courses/${id}`, { method: "GET" });
+}
+
+// =====================
+// MODULE CRUD (INSTRUCTOR)
+// =====================
+
+// Tambah module ke course
+// Backend: POST /instructor/courses/:id/modules
+// formData: title (string), pdf (file, optional), order (optional)
 export async function addModule(courseId, formData) {
-  // formData should be a FormData object with title, order, and optional pdf file
   const token = localStorage.getItem("token");
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -61,8 +85,9 @@ export async function addModule(courseId, formData) {
   return response.json();
 }
 
+// Edit module
+// PUT /instructor/courses/:course_id/modules/:module_id
 export async function editModule(courseId, moduleId, formData) {
-  // formData should be a FormData object with title, order, and optional pdf file
   const token = localStorage.getItem("token");
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -87,20 +112,54 @@ export async function editModule(courseId, moduleId, formData) {
   return response.json();
 }
 
+// Delete module
+// DELETE /instructor/courses/:course_id/modules/:module_id
 export async function deleteModule(courseId, moduleId) {
   return apiFetch(`/instructor/courses/${courseId}/modules/${moduleId}`, {
     method: "DELETE",
   });
 }
 
-export async function getCoursDetail(courseId) {
-  return apiFetch(`/courses/${courseId}`, { method: "GET" });
+// =====================
+// QUIZ (INSTRUCTOR)
+// =====================
+
+// Tambah banyak quiz untuk satu modul
+// Backend: POST /instructor/courses/:course_id/modules/:module_id/quizzes
+// quizList = [ { question, options: [a,b,c,d], answer: "teks jawaban" }, ... ]
+export async function addQuiz(courseId, moduleId, quizList) {
+  return apiFetch(
+    `/instructor/courses/${courseId}/modules/${moduleId}/quizzes`,
+    {
+      method: "POST",
+      body: JSON.stringify(quizList),
+    }
+  );
 }
 
-export async function publishCourse(courseId) {
-  return apiFetch(`/admin/courses/${courseId}/publish`, { method: "PUT" });
+// Ambil daftar quiz untuk satu modul
+// (asumsi ada GET /courses/:course_id/modules/:module_id/quizzes)
+export async function getModuleQuizzes(courseId, moduleId) {
+  return apiFetch(`/instructor/courses/${courseId}/modules/${moduleId}/quizzes`, {
+    method: "GET",
+  });
 }
 
-export async function unpublishCourse(courseId) {
-  return apiFetch(`/admin/courses/${courseId}/unpublish`, { method: "PUT" });
-}
+
+// Kalau nanti kamu buat endpoint edit/hapus quiz, tinggal aktifkan ini:
+// export async function updateQuiz(courseId, moduleId, quizId, quizData) {
+//   return apiFetch(`/instructor/courses/${courseId}/modules/${moduleId}/quizzes/${quizId}`, {
+//     method: "PUT",
+//     body: JSON.stringify(quizData),
+//   });
+// }
+//
+// export async function deleteQuiz(courseId, moduleId, quizId) {
+//   return apiFetch(`/instructor/courses/${courseId}/modules/${moduleId}/quizzes/${quizId}`, {
+//     method: "DELETE",
+//   });
+// }
+
+// =====================
+// PUBLISH / UNPUBLISH (ADMIN, kalau masih dipakai)
+// =====================
