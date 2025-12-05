@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="assets/css/animate.css" />
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
+    <link rel="stylesheet" href="assets/css/edit-modal.css" />
   </head>
 
   <body class="admin-body">
@@ -253,6 +254,42 @@
             </div>
           </section>
 
+          <div id="editUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h3>Edit Pengguna</h3>
+        <form id="editUserForm">
+            <input type="hidden" id="edit-user-id" name="id">
+
+            <div class="form-group">
+                <label for="edit-fullname">Nama Lengkap</label>
+                <input type="text" id="edit-fullname" name="fullname">
+            </div>
+
+            <div class="form-group">
+                <label for="edit-username">Username</label>
+                <input type="text" id="edit-username" name="username">
+            </div>
+
+            <div class="form-group">
+                <label for="edit-email">Email</label>
+                <input type="email" id="edit-email" name="email">
+            </div>
+
+            <div class="form-group">
+                <label for="edit-role">Role</label>
+                <select id="edit-role" name="role">
+                    <option value="" selected>-- Tidak Diubah --</option> 
+                    <option value="admin">Admin</option>
+                    <option value="user">User</option>
+                    </select>
+            </div>
+
+            <button type="submit" class="btn-admin btn-primary-admin">Simpan Perubahan</button>
+        </form>
+    </div>
+</div>
+
           <!-- Earnings Section -->
           <section class="dashboard-section" id="earnings">
             <div class="table-container">
@@ -413,6 +450,9 @@
         getAdminTransactions,
         getPublishedCourses,
         getAllUsers,
+        getUserById,
+        updateUser,
+        deleteUser,
         getAllFeedback,
         getInstructorEarnings,
         getProfile,
@@ -435,6 +475,9 @@
         getAdminTransactions,
         getPublishedCourses,
         getAllUsers,
+        getUserById,
+        updateUser,
+        deleteUser,
         getAllFeedback,
         getInstructorEarnings,
         getProfile,
@@ -499,30 +542,7 @@
             status: "draft",
           },
         ],
-        users: [
-          {
-            id: 1,
-            fullname: "Budi Santoso",
-            username: "buditoso",
-            email: "budi@example.com",
-            role: "student",
-          },
-          {
-            id: 2,
-            fullname: "Hendra Gunawan",
-            username: "hendragun",
-            email: "hendra@example.com",
-            role: "instructor",
-          },
-          {
-            id: 3,
-            fullname: "Administrator",
-            username: "admin",
-            email: "admin@edumark.com",
-            role: "admin",
-          },
-        ],
-        earnings: [
+         earnings: [
           {
             course_id: 1,
             course_title: "Web Development Bootcamp",
@@ -613,6 +633,9 @@
             window.apiDashboard.getAdminTransactions(),
             window.apiDashboard.getPublishedCourses(),
             window.apiDashboard.getAllUsers(),
+            window.apiDashboard.getUserById(),
+            window.apiDashboard.updateUser(),
+            window.apiDashboard.deleteUser(),
             window.apiDashboard.getAllFeedback(),
             window.apiDashboard.getInstructorEarnings(),
           ]);
@@ -847,34 +870,215 @@
           return;
         }
 
+        const usersMap = {}; 
+
         users.forEach((user) => {
+          const id = getId(user); 
+          usersMap[id] = user;
+          
           const name = getFirst(
             user.fullname,
             user.full_name,
-            user.fullName,
-            user.fullName
+            user.fullName 
           );
-          const row = `
-                    <tr>
-                        <td>#${getId(user)}</td>
+          const username = getFirst(
+              user.username,
+              user.user_name,
+              user.username
+          );
+          const email = getFirst(user.email, user.Email);
+          const role = String(getFirst(user.role, user.Role, "")).toUpperCase();
+          
+          const row = document.createElement('tr');
+          row.innerHTML = `
+                        <td>#${id}</td>
                         <td>${name}</td>
-                        <td>${getFirst(
-                          user.username,
-                          user.user_name,
-                          user.username
-                        )}</td>
-                        <td>${getFirst(user.email, user.Email)}</td>
-                        <td><span class="status-badge" style="background: rgba(102, 126, 234, 0.1); color: #667eea;">${String(
-                          getFirst(user.role, user.Role, "")
-                        ).toUpperCase()}</span></td>
+                        <td>${username}</td>
+                        <td>${email}</td>
+                        <td><span class="status-badge" style="background: rgba(102, 126, 234, 0.1); color: #667eea;">${role}</span></td>
                         <td>
-                            <button class="btn-admin btn-secondary-admin" style="padding: 6px 12px; font-size: 12px;">Edit</button>
-                            <button class="btn-admin btn-danger-admin" style="padding: 6px 12px; font-size: 12px;">Hapus</button>
+                            <button class="btn-admin btn-secondary-admin edit-btn" 
+                                data-user-id="${id}" 
+                                style="padding: 6px 12px; font-size: 12px;">Edit</button>
+                            <button class="btn-admin btn-danger-admin delete-btn" 
+                            style="padding: 6px 12px; font-size: 12px;"
+                            onclick="deleteUserAction('${id}', '${name}')">Hapus</button> 
+                            </td>
                         </td>
-                    </tr>
-                `;
-          tbody.innerHTML += row;
+                    `;
+          tbody.appendChild(row);
         });
+        
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const userId = event.target.getAttribute('data-user-id');
+                const userToEdit = usersMap[userId];
+                if (userToEdit) {
+                    showEditModal(userToEdit);
+                }
+            });
+        });
+      } 
+
+        function getUserId(user) {
+            if (user.ID !== null && user.ID !== undefined) {
+                return user.ID;
+            } 
+            if (user.id !== null && user.id !== undefined) {
+                return user.id;
+            } 
+            if (user._id !== null && user._id !== undefined) {
+                return user._id;
+            } 
+
+            // Jika kode mencapai sini, ID benar-benar hilang/bermasalah
+            console.error("ID pengguna hilang secara total pada objek:", user);
+            // FALLBACK TERAKHIR (ID acak)
+            return Math.random().toString(36).substring(7); 
+        }
+
+        // --- Fungsi untuk mengelola Modal Edit ---
+        const editModal = document.getElementById('editUserModal');
+        const closeBtn = document.querySelector('#editUserModal .close-btn');
+        const editForm = document.getElementById('editUserForm');
+
+        // Menutup modal ketika tombol 'x' diklik
+        closeBtn.onclick = function() {
+            editModal.style.display = "none";
+        }
+
+        // Menutup modal ketika user mengklik di luar modal
+        window.onclick = function(event) {
+            if (event.target == editModal) {
+                editModal.style.display = "none";
+            }
+        }
+
+        function showEditModal(user) {
+            // Ambil nilai yang konsisten dari objek user
+            const id = getId(user);
+            const name = getFirst(user.fullname, user.full_name, user.fullName);
+            const username = getFirst(user.username, user.user_name);
+            const email = getFirst(user.email, user.Email);
+            const role = String(getFirst(user.role, user.Role, "user")).toLowerCase();
+
+            // Isi form modal
+            document.getElementById('edit-user-id').value = id;
+            document.getElementById('edit-fullname').value = name;
+            document.getElementById('edit-username').value = username;
+            document.getElementById('edit-email').value = email;
+            document.getElementById('edit-role').value = role;
+
+            // Tampilkan modal
+            editModal.style.display = "block";
+        }
+
+        editForm.addEventListener('submit', function(event) {
+            event.preventDefault(); 
+
+            const userId = document.getElementById('edit-user-id').value;
+            const newFullname = document.getElementById('edit-fullname').value;
+            const newUsername = document.getElementById('edit-username').value;
+            const newEmail = document.getElementById('edit-email').value;
+            const newRole = document.getElementById('edit-role').value;
+
+            const updatedData = {
+                id: userId,
+                fullname: newFullname,
+                username: newUsername,
+                email: newEmail,
+                role: newRole
+            };
+            updateUser(updatedData);
+        });
+
+        async function updateUser(data) { // Tambahkan 'async' karena kita akan menggunakan await
+          const userIndex = dashboardData.users.findIndex(user => 
+              String(getUserId(user)) === String(data.id)
+          );
+
+          if (userIndex !== -1) {
+              // Data yang akan dikirim ke API:
+              const payload = {
+                  id: data.id,
+                  full_name: data.fullname, // Pastikan BE Anda menerima full_name atau sesuaikan key-nya
+                  username: data.username,
+                  email: data.email,
+                  role: data.role // Akan kosong jika tidak diubah
+              };
+              
+              // 1. PANGGIL FUNGSI HELPER YANG SUDAH ADA
+              try {
+                  console.log("Data akan dikirim ke server untuk ID:", data.id, payload);
+                  
+                  // Ganti fetch() manual dengan panggilan ke fungsi helper Anda
+                  await window.apiDashboard.updateUser(data.id, payload);
+
+                  // 2. Jika API sukses, update data lokal:
+                  const currentUser = dashboardData.users[userIndex];
+                  currentUser.fullname = data.fullname;
+                  currentUser.username = data.username;
+                  currentUser.email = data.email;
+                  if (data.role !== "") {
+                      currentUser.role = data.role;
+                  }
+                  
+                  // 3. Tutup modal dan refresh tabel
+                  editModal.style.display = "none";
+                  loadUsersData(); 
+                  
+                  alert(`Pengguna ${data.fullname} berhasil diperbarui.`);
+
+              } catch (error) {
+                  // Tangani error dari apiFetch (termasuk HTTP error 405)
+                  console.error('Error saat update:', error);
+                  // Error 405 atau lainnya akan ditangkap di sini
+                  alert(`Gagal memperbarui pengguna. Cek console. (Kemungkinan Error 405/Server)`);
+              }
+              
+          } else {
+              alert("Pengguna tidak ditemukan.");
+              console.error("ID tidak ditemukan dalam array dashboardData.users. ID yang dicari:", data.id);
+          }
+        }
+
+      async function deleteUserAction(id, userName) {
+          // 1. Konfirmasi pengguna
+          const isConfirmed = confirm(`Apakah Anda yakin ingin menghapus pengguna "${userName}" (ID: ${id})? Aksi ini tidak dapat dibatalkan.`);
+          
+          if (!isConfirmed) {
+              return; // Jika pengguna membatalkan
+          }
+
+          // 2. Kirim permintaan DELETE ke API
+          try {
+              console.log(`Mengirim permintaan DELETE untuk pengguna ID: ${id}`);
+              
+              // Memanggil fungsi helper deleteUser yang sudah Anda definisikan (asumsi dimuat di window.apiDashboard)
+              await window.apiDashboard.deleteUser(id);
+
+              // 3. Hapus pengguna dari data lokal (dashboardData.users)
+              // Kita gunakan String() untuk memastikan perbandingan tipe data yang aman (BIGINT/String)
+              const initialLength = dashboardData.users.length;
+              dashboardData.users = dashboardData.users.filter(user => 
+                  String(getUserId(user)) !== String(id)
+              );
+              
+              // 4. Muat ulang tabel dan berikan feedback
+              loadUsersData(); 
+
+              if (dashboardData.users.length < initialLength) {
+                  alert(`Pengguna "${userName}" (ID: ${id}) berhasil dihapus.`);
+              } else {
+                  // Ini mungkin terjadi jika pengguna sudah dihapus di server tetapi array lokal gagal di-filter
+                  alert(`Pengguna "${userName}" berhasil dihapus, tetapi data lokal mungkin tidak terupdate dengan sempurna. Tabel di-refresh.`);
+              }
+            
+          } catch (error) {
+              // Tangani kegagalan API (seperti error 404, 500, atau jaringan)
+              console.error("Gagal menghapus pengguna:", error);
+              alert(`Gagal menghapus pengguna "${userName}". Cek console untuk detail error.`);
+          }
       }
 
       // Load Feedback Data (normalized from BE or sample)
@@ -1028,65 +1232,6 @@
       // Keep original deleteFeedback for backward compatibility
       window.deleteFeedback = deleteFeedbackHandler;
 
-      // Edit User - opens prompts and updates via API with fallback
-      async function editUser(id) {
-        try {
-          const resp = await window.apiDashboard.getUserById(id);
-          const user = resp.user || resp || {};
-
-          const fullName = prompt(
-            "Nama lengkap:",
-            user.full_name ||
-              user.fullName ||
-              user.FullName ||
-              user.fullname ||
-              ""
-          );
-          if (fullName === null) return; // cancelled
-          const username = prompt(
-            "Username:",
-            user.username || user.user_name || ""
-          );
-          if (username === null) return;
-          const email = prompt("Email:", user.email || user.Email || "");
-          if (email === null) return;
-          const role = prompt(
-            "Role (user/instructor/admin):",
-            user.role || user.Role || "user"
-          );
-          if (role === null) return;
-
-          const payload = {
-            full_name: fullName,
-            username: username,
-            email: email,
-            role: role,
-          };
-
-          await window.apiDashboard.updateUser(id, payload);
-          alert("User berhasil diperbarui");
-
-          // Refresh users list from API if available
-          try {
-            const usersResp = await window.apiDashboard.getAllUsers();
-            dashboardData.users =
-              usersResp.users || usersResp || dashboardData.users;
-          } catch (err) {
-            // fallback: update local copy
-            dashboardData.users = (dashboardData.users || []).map((u) =>
-              String(getId(u)) === String(id)
-                ? Object.assign({}, u, payload)
-                : u
-            );
-          }
-
-          loadUsersData();
-        } catch (err) {
-          console.error("Failed to edit user:", err);
-          alert("Gagal memperbarui user (cek console untuk detail)");
-        }
-      }
-
       // Delete user with API fallback
       async function deleteUserHandler(id) {
         if (!confirm("Apakah Anda yakin ingin menghapus user ini?")) return;
@@ -1108,7 +1253,6 @@
       }
 
       // Expose user handlers globally for onclick
-      window.editUser = editUser;
       window.deleteUserHandler = deleteUserHandler;
 
       // Show Section
