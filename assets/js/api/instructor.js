@@ -1,10 +1,6 @@
 // assets/js/api/instructor.js
 import { apiFetch } from "./config.js";
 
-// =====================
-// INSTRUCTOR DASHBOARD
-// =====================
-
 export async function getInstructorEarnings() {
   return apiFetch("/instructor/earnings", { method: "GET" });
 }
@@ -21,9 +17,25 @@ export async function getProfile() {
   return apiFetch("/auth/me", { method: "GET" });
 }
 
-// =====================
-// COURSE CRUD (INSTRUCTOR)
-// =====================
+export async function updateInstructorProfile(data) {
+  return apiFetch("/instructor/profile", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function changeInstructorPassword(data) {
+  return apiFetch("/instructor/profile/password", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteInstructorAccount() {
+  return apiFetch("/instructor/profile", {
+    method: "DELETE",
+  });
+}
 
 // Create course
 // body: { title: string, description: string }
@@ -52,10 +64,6 @@ export async function deleteCourse(courseId) {
 export async function getCourseDetail(id) {
   return apiFetch(`/instructor/courses/${id}`, { method: "GET" });
 }
-
-// =====================
-// MODULE CRUD (INSTRUCTOR)
-// =====================
 
 // Tambah module ke course
 // Backend: POST /instructor/courses/:id/modules
@@ -120,9 +128,29 @@ export async function deleteModule(courseId, moduleId) {
   });
 }
 
-// =====================
-// QUIZ (INSTRUCTOR)
-// =====================
+export async function getModulePDFUrl(courseId, moduleId) {
+  // Fetch PDF directly because `apiFetch` expects JSON responses
+  const token = localStorage.getItem("token");
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+  const response = await fetch(
+    `http://127.0.0.1:8080/api/instructor/courses/${courseId}/modules/${moduleId}/pdf`,
+    { method: "GET", headers }
+  );
+
+  if (!response.ok) {
+    let errorMsg = `API error: ${response.status}`;
+    try {
+      const errorData = await response.json();
+      errorMsg = errorData.error || errorData.message || errorMsg;
+    } catch (e) {
+      // ignore parse error
+    }
+    throw new Error(errorMsg);
+  }
+
+  return response.blob(); // return Blob bukan JSON
+}
 
 // Tambah banyak quiz untuk satu modul
 // Backend: POST /instructor/courses/:course_id/modules/:module_id/quizzes
@@ -140,11 +168,13 @@ export async function addQuiz(courseId, moduleId, quizList) {
 // Ambil daftar quiz untuk satu modul
 // (asumsi ada GET /courses/:course_id/modules/:module_id/quizzes)
 export async function getModuleQuizzes(courseId, moduleId) {
-  return apiFetch(`/instructor/courses/${courseId}/modules/${moduleId}/quizzes`, {
-    method: "GET",
-  });
+  return apiFetch(
+    `/instructor/courses/${courseId}/modules/${moduleId}/quizzes`,
+    {
+      method: "GET",
+    }
+  );
 }
-
 
 // Kalau nanti kamu buat endpoint edit/hapus quiz, tinggal aktifkan ini:
 // export async function updateQuiz(courseId, moduleId, quizId, quizData) {

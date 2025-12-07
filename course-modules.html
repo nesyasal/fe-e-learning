@@ -301,6 +301,44 @@
       </div>
     </div>
 
+    <!-- Modal: Preview PDF -->
+    <div
+      id="pdf-preview-modal"
+      class="modal-backdrop-custom"
+      onclick="if(event.target===this) closePdfModal()"
+    >
+      <div
+        class="modal-box"
+        style="max-width: 900px; width: 95%; padding: 10px"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+          "
+        >
+          <h4 style="margin: 0">Preview PDF</h4>
+          <button
+            type="button"
+            class="btn-admin btn-secondary-admin"
+            onclick="closePdfModal()"
+            style="padding: 6px 10px"
+          >
+            Tutup
+          </button>
+        </div>
+        <div style="width: 100%; height: 80vh">
+          <iframe
+            id="pdf-preview-frame"
+            src=""
+            style="width: 100%; height: 100%; border: 0"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+
     <script src="assets/js/vendor/jquery-1.12.4.min.js"></script>
     <script src="assets/js/bootstrap.min.js"></script>
     <script type="module">
@@ -312,6 +350,7 @@
         addQuiz,
         getModuleQuizzes,
         getProfile,
+        getModulePDFUrl,
       } from "./assets/js/api/instructor.js";
 
       // Expose for onclick
@@ -319,7 +358,6 @@
       window.closeModuleModal = closeModuleModal;
       window.editModuleClick = editModuleClick;
       window.deleteModuleClick = deleteModuleClick;
-      window.previewPDF = previewPDF;
       window.openQuizModal = openQuizModal;
       window.closeQuizModal = closeQuizModal;
       window.addQuizRow = addQuizRow;
@@ -502,12 +540,41 @@
         });
       }
 
+      // Preview PDF (endpoint view-pdf di backend-mu) - show in modal popup
+      let __currentPdfObjectUrl = null;
+      window.previewPDF = async function (moduleId) {
+        try {
+          const blob = await getModulePDFUrl(currentCourseId, moduleId);
+          // revoke previous if exists
+          if (__currentPdfObjectUrl) {
+            URL.revokeObjectURL(__currentPdfObjectUrl);
+            __currentPdfObjectUrl = null;
+          }
+          const url = URL.createObjectURL(blob);
+          __currentPdfObjectUrl = url;
 
-      // Preview PDF (endpoint view-pdf di backend-mu)
-      function previewPDF(moduleId) {
-        const url = `http://127.0.0.1:8080/api/modules/${moduleId}/view-pdf`;
-        window.open(url, "_blank");
+          const modal = document.getElementById("pdf-preview-modal");
+          const frame = document.getElementById("pdf-preview-frame");
+          // Use iframe for better browser support inside modal
+          frame.src = url;
+          modal.classList.add("active");
+        } catch (err) {
+          console.error(err);
+          alert("Gagal memuat PDF.");
+        }
+      };
+
+      function closePdfModal() {
+        const modal = document.getElementById("pdf-preview-modal");
+        const frame = document.getElementById("pdf-preview-frame");
+        if (frame) frame.src = "";
+        modal.classList.remove("active");
+        if (__currentPdfObjectUrl) {
+          URL.revokeObjectURL(__currentPdfObjectUrl);
+          __currentPdfObjectUrl = null;
+        }
       }
+      window.closePdfModal = closePdfModal;
 
       // MODAL MODULE
 
@@ -753,9 +820,7 @@
 
         const quizList = [];
         for (const row of rows) {
-          const question = row
-            .querySelector(".quiz-question")
-            .value.trim();
+          const question = row.querySelector(".quiz-question").value.trim();
           const optA = row.querySelector(".quiz-opt-a").value.trim();
           const optB = row.querySelector(".quiz-opt-b").value.trim();
           const optC = row.querySelector(".quiz-opt-c").value.trim();

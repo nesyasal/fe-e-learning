@@ -1,261 +1,402 @@
 <!DOCTYPE html>
 <html class="no-js" lang="zxx">
-<head>
-  <meta charset="utf-8" />
-  <meta http-equiv="x-ua-compatible" content="ie=edge" />
-  <title>Instructor Dashboard - Edumark</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>Instructor Dashboard - Edumark</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="assets/css/font-awesome.min.css" />
-  <link rel="stylesheet" href="assets/css/themify-icons.css" />
-  <link rel="stylesheet" href="assets/css/animate.css" />
-  <link rel="stylesheet" href="assets/css/style.css" />
-  <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
-</head>
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="assets/css/themify-icons.css" />
+    <link rel="stylesheet" href="assets/css/animate.css" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
 
-<body class="admin-body">
+  <body class="admin-body">
+    <script>
+      // Role guard: only instructor can access this page
+      (function () {
+        try {
+          const user = JSON.parse(localStorage.getItem("user") || "null");
+          if (!user || user.role !== "instructor") {
+            alert("Akses ditolak: Halaman ini hanya untuk instructor");
+            window.location.href = "index.html";
+          }
+        } catch (e) {
+          console.warn("Role guard parse error", e);
+          window.location.href = "index.html";
+        }
+      })();
+    </script>
 
-<script>
-  // Role guard
-  (() => {
-    const user = JSON.parse(localStorage.getItem("user") || "null");
-    if (!user || user.role !== "instructor") {
-      alert("Akses ditolak: hanya untuk Instructor");
-      window.location.href = "index.html";
-    }
-  })();
-</script>
+    <div class="admin-container">
+      <!-- Sidebar -->
+      <aside class="admin-sidebar">
+        <div class="logo">
+          <img src="assets/img/logo.png" class="logo-img" />
+        </div>
 
-<div class="admin-container">
+        <nav class="admin-menu">
+          <div class="menu-item active" onclick="showSection('overview', this)">
+            <i class="fa fa-dashboard"></i><span>Dashboard</span>
+          </div>
 
-  <!-- Sidebar -->
-  <aside class="admin-sidebar">
-    <div class="logo">
-      <img src="assets/img/logo.png" class="logo-img" />
-    </div>
+          <div class="menu-item" onclick="showSection('courses', this)">
+            <i class="fa fa-book"></i><span>Kursus</span>
+          </div>
 
-    <nav class="admin-menu">
-      <div class="menu-item active" onclick="showSection('overview', this)">
-        <i class="fa fa-dashboard"></i><span>Dashboard</span>
-      </div>
+          <div class="menu-item" onclick="showSection('feedback', this)">
+            <i class="fa fa-comments"></i><span>Feedback</span>
+          </div>
 
-      <div class="menu-item" onclick="showSection('courses', this)">
-        <i class="fa fa-book"></i><span>Kursus</span>
-      </div>
+          <div class="menu-item" onclick="showSection('settings', this)">
+            <i class="fa fa-cog"></i><span>Pengaturan</span>
+          </div>
 
-      <div class="menu-item" onclick="showSection('feedback', this)">
-        <i class="fa fa-comments"></i><span>Feedback</span>
-      </div>
+          <div class="menu-item" onclick="logout()">
+            <i class="fa fa-sign-out"></i><span>Keluar</span>
+          </div>
+        </nav>
+      </aside>
 
-      <div class="menu-item" onclick="showSection('settings', this)">
-        <i class="fa fa-cog"></i><span>Pengaturan</span>
-      </div>
+      <!-- Main -->
+      <div class="admin-main">
+        <div class="admin-topbar">
+          <h2 id="page-title">Dashboard</h2>
 
-      <div class="menu-item" onclick="logout()">
-        <i class="fa fa-sign-out"></i><span>Keluar</span>
-      </div>
-    </nav>
-  </aside>
+          <div class="admin-topbar-right">
+            <div class="user-profile">
+              <div class="user-avatar" id="user-avatar">IN</div>
+              <div class="user-name" id="user-name">Instructor</div>
+            </div>
+          </div>
+        </div>
 
-  <!-- Main -->
-  <div class="admin-main">
-    <div class="admin-topbar">
-      <h2 id="page-title">Dashboard</h2>
+        <div class="admin-content">
+          <!-- Overview -->
+          <section id="overview" class="dashboard-section active">
+            <div class="stats-container">
+              <div class="stat-card courses">
+                <div class="stat-icon"><i class="fa fa-book"></i></div>
+                <div class="stat-label">Total Kursus</div>
+                <div class="stat-value" id="stat-total-courses">0</div>
+              </div>
 
-      <div class="admin-topbar-right">
-        <div class="user-profile">
-          <div class="user-avatar" id="user-avatar">IN</div>
-          <div class="user-name" id="user-name">Instructor</div>
+              <div class="stat-card modules">
+                <div class="stat-icon"><i class="fa fa-folder"></i></div>
+                <div class="stat-label">Total Modul</div>
+                <div class="stat-value" id="stat-total-modules">0</div>
+              </div>
+
+              <div class="stat-card quiz">
+                <div class="stat-icon">
+                  <i class="fa fa-question-circle"></i>
+                </div>
+                <div class="stat-label">Total Quiz</div>
+                <div class="stat-value" id="stat-total-quiz">0</div>
+              </div>
+
+              <div class="stat-card rating">
+                <div class="stat-icon"><i class="fa fa-star"></i></div>
+                <div class="stat-label">Feedback</div>
+                <div class="stat-value" id="stat-total-feedback">0</div>
+              </div>
+            </div>
+            <div style="margin-top: 30px">
+              <h4>Analitik Kursus</h4>
+
+              <div style="width: 100%; max-width: 900px; margin-top: 20px">
+                <canvas id="chartModules"></canvas>
+              </div>
+
+              <div style="width: 100%; max-width: 900px; margin-top: 40px">
+                <canvas id="chartQuizzes"></canvas>
+              </div>
+
+              <div style="width: 100%; max-width: 500px; margin-top: 40px">
+                <canvas id="chartPublished"></canvas>
+              </div>
+            </div>
+          </section>
+
+          <!-- Courses -->
+          <section id="courses" class="dashboard-section">
+            <div class="table-container">
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  margin-bottom: 20px;
+                "
+              >
+                <h3>Kursus Saya</h3>
+                <button
+                  class="btn-admin btn-primary-admin"
+                  onclick="createCourse()"
+                >
+                  + Kursus Baru
+                </button>
+              </div>
+
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Judul</th>
+                    <th>Modul</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="courses-table">
+                  <tr>
+                    <td colspan="5" class="empty-state">Memuat...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Feedback -->
+          <section id="feedback" class="dashboard-section">
+            <div class="table-container">
+              <h3>Feedback Mahasiswa</h3>
+
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Pengguna</th>
+                    <th>Kursus</th>
+                    <th>Rating</th>
+                    <th>Komentar</th>
+                    <th>Tanggal</th>
+                  </tr>
+                </thead>
+                <tbody id="feedback-table">
+                  <tr>
+                    <td colspan="6" class="empty-state">Memuat...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Settings -->
+          <section id="settings" class="dashboard-section">
+            <div class="table-container">
+              <h3>Pengaturan Akun</h3>
+
+              <form id="settings-form" style="max-width: 400px">
+                <label>Nama Lengkap</label>
+                <input id="set-name" class="form-control" />
+
+                <label style="margin-top: 10px">Email</label>
+                <input id="set-email" type="email" class="form-control" />
+
+                <label style="margin-top: 10px">Username</label>
+                <input id="set-username" class="form-control" />
+
+                <button
+                  class="btn-admin btn-primary-admin"
+                  style="margin-top: 20px"
+                >
+                  Simpan
+                </button>
+              </form>
+
+              <h3 style="margin-top: 30px">Ganti Password</h3>
+
+              <form id="password-form" style="max-width:400px">
+                <label>Password Lama</label>
+                <input type="password" id="old-pass" class="form-control" required />
+
+                <label style="margin-top:10px">Password Baru</label>
+                <input type="password" id="new-pass" class="form-control" required />
+
+                <button class="btn-admin btn-primary-admin" style="margin-top:20px">
+                  Ganti Password
+                </button>
+              </form>
+
+              <button
+                id="delete-account"
+                class="btn-admin btn-danger-admin"
+                style="margin-top:30px"
+              >
+                Hapus Akun
+              </button>
+
+            </div>
+          </section>
         </div>
       </div>
     </div>
 
-    <div class="admin-content">
+    <!-- JS -->
+    <script src="assets/js/vendor/jquery-1.12.4.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
 
-      <!-- Overview -->
-      <section id="overview" class="dashboard-section active">
-        <div class="stats-container">
+    <script type="module">
+      import {
+        getInstructorCourses,
+        getInstructorFeedback,
+        getProfile,
+        updateInstructorProfile,
+        changeInstructorPassword,
+        deleteInstructorAccount
+      } from "./assets/js/api/instructor.js";
+      import { logoutUser } from "./assets/js/api/auth.js";
 
-          <div class="stat-card courses">
-            <div class="stat-icon"><i class="fa fa-book"></i></div>
-            <div class="stat-label">Total Kursus</div>
-            <div class="stat-value" id="stat-total-courses">0</div>
-          </div>
+      window.logout = logout;
+      window.showSection = showSection;
+      window.createCourse = () => (window.location.href = "course-form.html");
 
-          <div class="stat-card modules">
-            <div class="stat-icon"><i class="fa fa-folder"></i></div>
-            <div class="stat-label">Total Modul</div>
-            <div class="stat-value" id="stat-total-modules">0</div>
-          </div>
+      let data = {
+        profile: {},
+        courses: [],
+        feedback: [],
+      };
 
-          <div class="stat-card quiz">
-            <div class="stat-icon"><i class="fa fa-question-circle"></i></div>
-            <div class="stat-label">Total Quiz</div>
-            <div class="stat-value" id="stat-total-quiz">0</div>
-          </div>
+      // FIX: helper agar id bekerja utk {id} dan {ID}
+      function getId(o) {
+        return o.id || o.ID || 0;
+      }
 
-          <div class="stat-card rating">
-            <div class="stat-icon"><i class="fa fa-star"></i></div>
-            <div class="stat-label">Feedback</div>
-            <div class="stat-value" id="stat-total-feedback">0</div>
-          </div>
+      async function init() {
+        const [prof, crs, fb] = await Promise.all([
+          getProfile(),
+          getInstructorCourses(),
+          getInstructorFeedback(),
+        ]);
 
-        </div>
-      </section>
+        data.profile = prof || {};
 
-      <!-- Courses -->
-      <section id="courses" class="dashboard-section">
-        <div class="table-container">
+        // FIX PARSING COURSES
+        data.courses = Array.isArray(crs?.courses) ? crs.courses : [];
 
-          <div style="display:flex; justify-content:space-between; margin-bottom:20px">
-            <h3>Kursus Saya</h3>
-            <button class="btn-admin btn-primary-admin" onclick="createCourse()">+ Kursus Baru</button>
-          </div>
+        // FIX PARSING FEEDBACK
+        data.feedback = Array.isArray(fb?.feedbacks) ? fb.feedbacks : [];
 
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Judul</th>
-                <th>Modul</th>
-                <th>Status</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="courses-table">
-              <tr><td colspan="5" class="empty-state">Memuat...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+        renderProfile();
+        renderCourses();
+        renderFeedback();
+        renderStats();
+        renderStats();
+        renderCharts();
+      }
 
-      <!-- Feedback -->
-      <section id="feedback" class="dashboard-section">
-        <div class="table-container">
-          <h3>Feedback Mahasiswa</h3>
+      function renderProfile() {
+        const p = data.profile;
+        document.getElementById("user-name").textContent =
+          p.fullName || "Instructor";
+        document.getElementById("user-avatar").textContent = (p.fullName ||
+          "IN")[0];
+        document.getElementById("set-name").value = p.fullName || "";
+        document.getElementById("set-email").value = p.email || "";
+        document.getElementById("set-username").value = p.username || "";
+      }
 
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Pengguna</th>
-                <th>Kursus</th>
-                <th>Rating</th>
-                <th>Komentar</th>
-                <th>Tanggal</th>
-              </tr>
-            </thead>
-            <tbody id="feedback-table">
-              <tr><td colspan="6" class="empty-state">Memuat...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      function renderStats() {
+        document.getElementById("stat-total-courses").textContent =
+          data.courses.length;
+        document.getElementById("stat-total-feedback").textContent =
+          data.feedback.length;
 
-      <!-- Settings -->
-      <section id="settings" class="dashboard-section">
-        <div class="table-container">
-          <h3>Pengaturan Akun</h3>
+        let totalModules = 0;
+        let totalQuiz = 0;
 
-          <form id="settings-form" style="max-width:400px">
-            <label>Nama Lengkap</label>
-            <input id="set-name" class="form-control" />
+        data.courses.forEach((c) => {
+          totalModules += c.total_modules || 0;
+          totalQuiz += c.total_quizzes || 0;
+        });
 
-            <label style="margin-top:10px">Email</label>
-            <input id="set-email" type="email" class="form-control"/>
+        document.getElementById("stat-total-modules").textContent =
+          totalModules;
+        document.getElementById("stat-total-quiz").textContent = totalQuiz;
+      }
 
-            <label style="margin-top:10px">Username</label>
-            <input id="set-username" class="form-control"/>
+      let chartModules = null;
+      let chartQuizzes = null;
+      let chartPublished = null;
 
-            <button class="btn-admin btn-primary-admin" style="margin-top:20px">Simpan</button>
-          </form>
-        </div>
-      </section>
+      function renderCharts() {
+        const ctx1 = document.getElementById("chartModules");
+        const ctx2 = document.getElementById("chartQuizzes");
+        const ctx3 = document.getElementById("chartPublished");
 
-    </div>
-  </div>
-</div>
+        const labels = data.courses.map((c) => c.title);
+        const modulesData = data.courses.map((c) => c.total_modules || 0);
+        const quizzesData = data.courses.map((c) => c.total_quizzes || 0);
 
-<!-- JS -->
-<script src="assets/js/vendor/jquery-1.12.4.min.js"></script>
-<script src="assets/js/bootstrap.min.js"></script>
+        // Hapus grafik lama agar tidak double render
+        if (chartModules) chartModules.destroy();
+        if (chartQuizzes) chartQuizzes.destroy();
+        if (chartPublished) chartPublished.destroy();
 
-<script type="module">
-  import { getInstructorCourses, getInstructorFeedback, getProfile } from "./assets/js/api/instructor.js";
-  import { logoutUser } from "./assets/js/api/auth.js";
+        chartModules = new Chart(ctx1, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "Jumlah Modul",
+                data: modulesData,
+                backgroundColor: "#667eea",
+              },
+            ],
+          },
+          options: { responsive: true },
+        });
 
-  window.logout = logout;
-  window.showSection = showSection;
-  window.createCourse = () => window.location.href = "course-form.html";
+        chartQuizzes = new Chart(ctx2, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [
+              {
+                label: "Jumlah Quiz",
+                data: quizzesData,
+                backgroundColor: "#f6ad55",
+              },
+            ],
+          },
+        });
 
-  let data = {
-    profile: {},
-    courses: [],
-    feedback: [],
-  };
+        const publishedCount = data.courses.filter((c) => c.published).length;
+        const draftCount = data.courses.length - publishedCount;
 
-  // FIX: helper agar id bekerja utk {id} dan {ID}
-  function getId(o) {
-    return o.id || o.ID || 0;
-  }
+        chartPublished = new Chart(ctx3, {
+          type: "pie",
+          data: {
+            labels: ["Published", "Draft"],
+            datasets: [
+              {
+                data: [publishedCount, draftCount],
+                backgroundColor: ["#48bb78", "#ecc94b"],
+              },
+            ],
+          },
+        });
+      }
 
-  async function init() {
-    const [prof, crs, fb] = await Promise.all([
-      getProfile(),
-      getInstructorCourses(),
-      getInstructorFeedback()
-    ]);
+      function renderCourses() {
+        const tbody = document.getElementById("courses-table");
+        tbody.innerHTML = "";
 
-    data.profile = prof || {};
-    data.courses = crs?.courses || crs || [];
-    data.feedback = fb?.feedbacks || fb || [];
+        if (!data.courses || data.courses.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Belum ada kursus</td></tr>`;
+          return;
+        }
 
-    renderProfile();
-    renderCourses();
-    renderFeedback();
-    renderStats();
-  }
+        data.courses.forEach((c) => {
+          const cid = getId(c);
 
-  function renderProfile() {
-    const p = data.profile;
-    document.getElementById("user-name").textContent = p.fullName || "Instructor";
-    document.getElementById("user-avatar").textContent = (p.fullName || "IN")[0];
-    document.getElementById("set-name").value = p.fullName || "";
-    document.getElementById("set-email").value = p.email || "";
-    document.getElementById("set-username").value = p.username || "";
-  }
-
-  function renderStats() {
-    document.getElementById("stat-total-courses").textContent = data.courses.length;
-    document.getElementById("stat-total-feedback").textContent = data.feedback.length;
-
-    let totalModules = 0;
-    let totalQuiz = 0;
-
-    data.courses.forEach(c => {
-      totalModules += c.total_modules || 0;
-      totalQuiz += c.total_quizzes || 0;
-    });
-
-    document.getElementById("stat-total-modules").textContent = totalModules;
-    document.getElementById("stat-total-quiz").textContent = totalQuiz;
-  }
-
-  function renderCourses() {
-    const tbody = document.getElementById("courses-table");
-    tbody.innerHTML = "";
-
-    if (!data.courses || data.courses.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Belum ada kursus</td></tr>`;
-      return;
-    }
-
-    data.courses.forEach(c => {
-      const cid = getId(c);
-
-      tbody.innerHTML += `
+          tbody.innerHTML += `
         <tr>
           <td>#${cid}</td>
           <td>${c.title}</td>
@@ -267,20 +408,20 @@
           </td>
         </tr>
       `;
-    });
-  }
+        });
+      }
 
-  function renderFeedback() {
-    const tbody = document.getElementById("feedback-table");
-    tbody.innerHTML = "";
+      function renderFeedback() {
+        const tbody = document.getElementById("feedback-table");
+        tbody.innerHTML = "";
 
-    if (data.feedback.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Belum ada feedback</td></tr>`;
-      return;
-    }
+        if (data.feedback.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Belum ada feedback</td></tr>`;
+          return;
+        }
 
-    data.feedback.forEach(f => {
-      tbody.innerHTML += `
+        data.feedback.forEach((f) => {
+          tbody.innerHTML += `
         <tr>
           <td>#${getId(f)}</td>
           <td>${f.user_name}</td>
@@ -290,30 +431,106 @@
           <td>${new Date(f.created_at).toLocaleDateString("id-ID")}</td>
         </tr>
       `;
-    });
-  }
+        });
+      }
 
-  function showSection(id, el) {
-    document.querySelectorAll(".dashboard-section").forEach(s => s.classList.remove("active"));
-    document.querySelectorAll(".menu-item").forEach(m => m.classList.remove("active"));
+      function showSection(id, el) {
+        document
+          .querySelectorAll(".dashboard-section")
+          .forEach((s) => s.classList.remove("active"));
+        document
+          .querySelectorAll(".menu-item")
+          .forEach((m) => m.classList.remove("active"));
 
-    document.getElementById(id).classList.add("active");
-    el.classList.add("active");
+        document.getElementById(id).classList.add("active");
+        el.classList.add("active");
 
-    document.getElementById("page-title").textContent =
-      id === "overview" ? "Dashboard" :
-      id === "courses" ? "Kursus" :
-      id === "feedback" ? "Feedback" : "Pengaturan";
-  }
+        document.getElementById("page-title").textContent =
+          id === "overview"
+            ? "Dashboard"
+            : id === "courses"
+            ? "Kursus"
+            : id === "feedback"
+            ? "Feedback"
+            : "Pengaturan";
+      }
 
-  async function logout() {
-    await logoutUser().catch(() => {});
-    localStorage.clear();
-    window.location.href = "index.html";
-  }
+      document.getElementById("settings-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-  document.addEventListener("DOMContentLoaded", init);
-</script>
+        const data = {
+          full_name: document.getElementById("set-name").value,
+          email: document.getElementById("set-email").value,
+          username: document.getElementById("set-username").value
+        };
 
-</body>
+        try {
+          await updateInstructorProfile(data);
+          alert("Profil berhasil diperbarui!");
+        } catch (err) {
+          alert("Gagal update profil: " + err.message);
+        }
+      });
+
+      document.getElementById("password-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const oldPassword = document.getElementById("old-pass").value.trim();
+        const newPassword = document.getElementById("new-pass").value.trim();
+
+        try {
+          await changeInstructorPassword({
+            old_password: oldPassword,
+            new_password: newPassword,
+          });
+
+          alert("Password berhasil diganti!");
+          document.getElementById("password-form").reset();
+        } catch (err) {
+          alert("Gagal mengganti password: " + err.message);
+        }
+      });
+
+      document.getElementById("delete-account").addEventListener("click", async () => {
+        if (!confirm("Apakah Anda yakin ingin menghapus akun Anda? Tindakan ini tidak dapat dibatalkan.")) return;
+
+        try {
+          await deleteInstructorAccount();
+          localStorage.clear();
+          alert("Akun berhasil dihapus.");
+          window.location.href = "index.html";
+        } catch (err) {
+          alert("Gagal menghapus akun: " + err.message);
+        }
+      });
+
+
+      async function logout() {
+        if (!confirm("Apakah Anda yakin ingin keluar?")) return;
+        try {
+          // Call backend logout (stateless acknowledgement)
+          if (
+            window.apiAuth &&
+            typeof window.apiAuth.logoutUser === "function"
+          ) {
+            await window.apiAuth.logoutUser();
+          }
+        } catch (err) {
+          console.warn(
+            "Logout API failed, proceeding to clear local session",
+            err
+          );
+        } finally {
+          // Clear token and redirect to login
+          try {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+          } catch (e) {}
+          window.location.href = "index.html";
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
 </html>
