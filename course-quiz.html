@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="assets/css/font-awesome.min.css" />
     <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
     <link rel="stylesheet" href="assets/css/course-quiz.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </head>
 
   <body class="admin-body">
@@ -247,8 +248,20 @@
         document.getElementById("quiz-modal").classList.add("active");
       };
 
-      window.deleteQuiz = function (index) {
-        if (!confirm("Apakah Anda yakin ingin menghapus quiz ini?")) return;
+      window.deleteQuiz = async function (index) {
+        const ok = window.Swal
+          ? (
+              await Swal.fire({
+                title: "Hapus Quiz",
+                text: "Apakah Anda yakin ingin menghapus quiz ini?",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Ya",
+                cancelButtonText: "Batal",
+              })
+            ).isConfirmed
+          : confirm("Apakah Anda yakin ingin menghapus quiz ini?");
+        if (!ok) return;
         quizzes.splice(index, 1);
         localStorage.setItem(
           `module-${moduleId}-quizzes`,
@@ -352,6 +365,19 @@
       });
 
       function showAlert(message, type) {
+        try {
+          if (window.Swal) {
+            Swal.fire({
+              icon: type === "error" ? "error" : "success",
+              title: type === "error" ? "Error" : "Berhasil",
+              text: message,
+            });
+            return;
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+
         const errorAlert = document.getElementById("alert-error");
         const successAlert = document.getElementById("alert-success");
 

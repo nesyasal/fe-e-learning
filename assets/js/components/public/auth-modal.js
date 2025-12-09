@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.querySelector("#test-form");
 
   if (registerForm) {
-     // Helper validation functions
+    // Helper validation functions
     const validateEmail = (email) => {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     };
@@ -89,7 +89,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const res = await registerUser(data);
 
         // Success: inform user and close modal if Magnific Popup is available
-        alert("Registration successful. You can now sign in.");
+        try {
+          if (window.Swal) {
+            Swal.fire({
+              icon: "success",
+              title: "Pendaftaran Berhasil",
+              text: "Pendaftaran berhasil. Silakan login.",
+            });
+          } else {
+            alert("Registration successful. You can now sign in.");
+          }
+        } catch (e) {
+          console.warn("swal failed", e);
+        }
+
         try {
           if (window.jQuery && typeof jQuery.magnificPopup === "object") {
             jQuery.magnificPopup.close();
@@ -107,7 +120,11 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
           if (err?.message) msg = err.message;
         } catch (e) {}
-        alert(msg);
+        if (window.Swal) {
+          Swal.fire({ icon: "error", title: "Gagal", text: msg });
+        } else {
+          alert(msg);
+        }
         console.error(err);
       } finally {
         if (submitBtn) {
@@ -145,7 +162,15 @@ document.addEventListener("DOMContentLoaded", () => {
           window.location.href = "index.html";
         }
       } catch (err) {
-        alert("Login failed.");
+        if (window.Swal) {
+          Swal.fire({
+            icon: "error",
+            title: "Login Gagal",
+            text: "Login failed.",
+          });
+        } else {
+          alert("Login failed.");
+        }
         console.error(err);
       }
     });

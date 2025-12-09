@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </head>
 
   <body class="admin-body">
@@ -211,14 +212,27 @@
 
               <h3 style="margin-top: 30px">Ganti Password</h3>
 
-              <form id="password-form" style="max-width:400px">
+              <form id="password-form" style="max-width: 400px">
                 <label>Password Lama</label>
-                <input type="password" id="old-pass" class="form-control" required />
+                <input
+                  type="password"
+                  id="old-pass"
+                  class="form-control"
+                  required
+                />
 
-                <label style="margin-top:10px">Password Baru</label>
-                <input type="password" id="new-pass" class="form-control" required />
+                <label style="margin-top: 10px">Password Baru</label>
+                <input
+                  type="password"
+                  id="new-pass"
+                  class="form-control"
+                  required
+                />
 
-                <button class="btn-admin btn-primary-admin" style="margin-top:20px">
+                <button
+                  class="btn-admin btn-primary-admin"
+                  style="margin-top: 20px"
+                >
                   Ganti Password
                 </button>
               </form>
@@ -226,11 +240,10 @@
               <button
                 id="delete-account"
                 class="btn-admin btn-danger-admin"
-                style="margin-top:30px"
+                style="margin-top: 30px"
               >
                 Hapus Akun
               </button>
-
             </div>
           </section>
         </div>
@@ -248,7 +261,7 @@
         getProfile,
         updateInstructorProfile,
         changeInstructorPassword,
-        deleteInstructorAccount
+        deleteInstructorAccount,
       } from "./assets/js/api/instructor.js";
       import { logoutUser } from "./assets/js/api/auth.js";
 
@@ -265,6 +278,42 @@
       // FIX: helper agar id bekerja utk {id} dan {ID}
       function getId(o) {
         return o.id || o.ID || 0;
+      }
+
+      // SweetAlert helpers
+      async function swConfirm(message, title = "Konfirmasi") {
+        try {
+          const result = await Swal.fire({
+            title: title,
+            text: message,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Ya",
+            cancelButtonText: "Batal",
+            reverseButtons: true,
+          });
+          return !!result.isConfirmed;
+        } catch (e) {
+          console.warn("swConfirm failed", e);
+          return false;
+        }
+      }
+
+      function swNotify(message, icon = "success", timeout = 3000) {
+        try {
+          Swal.fire({
+            toast: true,
+            position: "bottom-end",
+            icon: icon,
+            title: message,
+            showConfirmButton: false,
+            timer: timeout,
+            timerProgressBar: true,
+          });
+        } catch (e) {
+          console.warn("swNotify failed", e);
+          alert(message);
+        }
       }
 
       async function init() {
@@ -455,58 +504,71 @@
             : "Pengaturan";
       }
 
-      document.getElementById("settings-form").addEventListener("submit", async (e) => {
-        e.preventDefault();
+      document
+        .getElementById("settings-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
 
-        const data = {
-          full_name: document.getElementById("set-name").value,
-          email: document.getElementById("set-email").value,
-          username: document.getElementById("set-username").value
-        };
+          const data = {
+            full_name: document.getElementById("set-name").value,
+            email: document.getElementById("set-email").value,
+            username: document.getElementById("set-username").value,
+          };
 
-        try {
-          await updateInstructorProfile(data);
-          alert("Profil berhasil diperbarui!");
-        } catch (err) {
-          alert("Gagal update profil: " + err.message);
-        }
-      });
+          try {
+            await updateInstructorProfile(data);
+            swNotify("Profil berhasil diperbarui!", "success");
+          } catch (err) {
+            swNotify("Gagal update profil: " + (err.message || ""), "error");
+          }
+        });
 
-      document.getElementById("password-form").addEventListener("submit", async (e) => {
-        e.preventDefault();
+      document
+        .getElementById("password-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
 
-        const oldPassword = document.getElementById("old-pass").value.trim();
-        const newPassword = document.getElementById("new-pass").value.trim();
+          const oldPassword = document.getElementById("old-pass").value.trim();
+          const newPassword = document.getElementById("new-pass").value.trim();
 
-        try {
-          await changeInstructorPassword({
-            old_password: oldPassword,
-            new_password: newPassword,
-          });
+          try {
+            await changeInstructorPassword({
+              old_password: oldPassword,
+              new_password: newPassword,
+            });
 
-          alert("Password berhasil diganti!");
-          document.getElementById("password-form").reset();
-        } catch (err) {
-          alert("Gagal mengganti password: " + err.message);
-        }
-      });
+            swNotify("Password berhasil diganti!", "success");
+            document.getElementById("password-form").reset();
+          } catch (err) {
+            swNotify(
+              "Gagal mengganti password: " + (err.message || ""),
+              "error"
+            );
+          }
+        });
 
-      document.getElementById("delete-account").addEventListener("click", async () => {
-        if (!confirm("Apakah Anda yakin ingin menghapus akun Anda? Tindakan ini tidak dapat dibatalkan.")) return;
+      document
+        .getElementById("delete-account")
+        .addEventListener("click", async () => {
+          const ok = await swConfirm(
+            "Apakah Anda yakin ingin menghapus akun Anda? Tindakan ini tidak dapat dibatalkan.",
+            "Hapus Akun"
+          );
+          if (!ok) return;
 
-        try {
-          await deleteInstructorAccount();
-          localStorage.clear();
-          alert("Akun berhasil dihapus.");
-          window.location.href = "index.html";
-        } catch (err) {
-          alert("Gagal menghapus akun: " + err.message);
-        }
-      });
-
+          try {
+            await deleteInstructorAccount();
+            localStorage.clear();
+            swNotify("Akun berhasil dihapus.", "success");
+            window.location.href = "index.html";
+          } catch (err) {
+            swNotify("Gagal menghapus akun: " + (err.message || ""), "error");
+          }
+        });
 
       async function logout() {
-        if (!confirm("Apakah Anda yakin ingin keluar?")) return;
+        const ok = await swConfirm("Apakah Anda yakin ingin keluar?", "Logout");
+        if (!ok) return;
         try {
           // Call backend logout (stateless acknowledgement)
           if (

@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="assets/css/font-awesome.min.css" />
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
       .module-header {
         display: flex;
@@ -92,13 +93,59 @@
         try {
           const user = JSON.parse(localStorage.getItem("user") || "null");
           if (!user || user.role !== "instructor") {
-            alert("Akses ditolak: Halaman ini hanya untuk instructor");
-            window.location.href = "index.html";
+            if (window.Swal) {
+              Swal.fire({
+                icon: "error",
+                title: "Akses ditolak",
+                text: "Halaman ini hanya untuk instructor",
+              }).then(() => (window.location.href = "index.html"));
+            } else {
+              alert("Akses ditolak: Halaman ini hanya untuk instructor");
+              window.location.href = "index.html";
+            }
           }
         } catch (e) {
           window.location.href = "index.html";
         }
       })();
+
+      // SweetAlert helpers
+      async function swConfirm(message, title = "Konfirmasi") {
+        try {
+          const result = await Swal.fire({
+            title,
+            text: message,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Ya",
+            cancelButtonText: "Batal",
+            reverseButtons: true,
+          });
+          return !!result.isConfirmed;
+        } catch (e) {
+          console.warn(e);
+          return false;
+        }
+      }
+
+      function swNotify(message, icon = "success", timeout = 2500) {
+        try {
+          if (window.Swal) {
+            Swal.fire({
+              toast: true,
+              position: "bottom-end",
+              icon,
+              title: message,
+              showConfirmButton: false,
+              timer: timeout,
+            });
+          } else {
+            alert(message);
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+      }
     </script>
 
     <div class="admin-container">
@@ -402,8 +449,17 @@
       async function initPage() {
         currentCourseId = getQueryParam("id");
         if (!currentCourseId) {
-          alert("Course ID tidak ditemukan di URL.");
-          window.location.href = "instructor-dashboard.html";
+          if (window.Swal) {
+            await Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: "Course ID tidak ditemukan di URL.",
+            });
+            window.location.href = "instructor-dashboard.html";
+          } else {
+            alert("Course ID tidak ditemukan di URL.");
+            window.location.href = "instructor-dashboard.html";
+          }
           return;
         }
 
@@ -442,7 +498,7 @@
           renderQuizPanel();
         } catch (err) {
           console.error(err);
-          alert("Gagal mengambil data course.");
+          swNotify("Gagal mengambil data course.", "error");
         }
       }
 
@@ -653,7 +709,7 @@
             closeModuleModal();
           } catch (err) {
             console.error(err);
-            alert("Gagal menyimpan modul: " + err.message);
+            swNotify("Gagal menyimpan modul: " + (err.message || ""), "error");
           } finally {
             btn.disabled = false;
             btn.textContent = "Simpan";
@@ -665,13 +721,18 @@
       }
 
       async function deleteModuleClick(moduleId) {
-        if (!confirm("Yakin ingin menghapus modul ini?")) return;
+        const ok = await swConfirm(
+          "Yakin ingin menghapus modul ini?",
+          "Hapus Modul"
+        );
+        if (!ok) return;
         try {
           await deleteModule(currentCourseId, moduleId);
           await loadCourseDetail();
+          swNotify("Modul berhasil dihapus.", "success");
         } catch (err) {
           console.error(err);
-          alert("Gagal menghapus modul: " + err.message);
+          swNotify("Gagal menghapus modul: " + (err.message || ""), "error");
         }
       }
 

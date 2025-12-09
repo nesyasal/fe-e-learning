@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="assets/css/font-awesome.min.css" />
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
       .form-wrapper {
         max-width: 700px;
@@ -158,6 +159,42 @@
     <script src="assets/js/vendor/jquery-1.12.4.min.js"></script>
     <script src="assets/js/bootstrap.min.js"></script>
     <script type="module">
+      // SweetAlert helpers for this module
+      async function swConfirm(message, title = "Konfirmasi") {
+        try {
+          const result = await Swal.fire({
+            title,
+            text: message,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Ya",
+            cancelButtonText: "Batal",
+            reverseButtons: true,
+          });
+          return !!result.isConfirmed;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function swNotify(message, icon = "success", timeout = 2500) {
+        try {
+          if (window.Swal) {
+            Swal.fire({
+              toast: true,
+              position: "bottom-end",
+              icon,
+              title: message,
+              showConfirmButton: false,
+              timer: timeout,
+            });
+          } else {
+            alert(message);
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+      }
       import {
         createCourse,
         updateCourse,
@@ -209,7 +246,7 @@
               course.description || course.Description || "";
           } catch (err) {
             console.error(err);
-            alert("Gagal memuat data kursus.");
+            swNotify("Gagal memuat data kursus.", "error");
           }
         }
       }
@@ -225,7 +262,7 @@
             .value.trim();
 
           if (!title || !description) {
-            alert("Judul dan deskripsi wajib diisi.");
+            swNotify("Judul dan deskripsi wajib diisi.", "error");
             return;
           }
 
@@ -237,15 +274,15 @@
           try {
             if (id) {
               await updateCourse(id, payload);
-              alert("Kursus berhasil diperbarui.");
+              swNotify("Kursus berhasil diperbarui.", "success");
             } else {
               await createCourse(payload);
-              alert("Kursus berhasil dibuat.");
+              swNotify("Kursus berhasil dibuat.", "success");
             }
             window.location.href = "instructor-dashboard.html";
           } catch (err) {
             console.error(err);
-            alert("Gagal menyimpan kursus: " + err.message);
+            swNotify("Gagal menyimpan kursus: " + (err.message || ""), "error");
           } finally {
             btn.disabled = false;
             btn.textContent = "Simpan Kursus";

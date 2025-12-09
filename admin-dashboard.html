@@ -15,6 +15,51 @@
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
     <link rel="stylesheet" href="assets/css/edit-modal.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      /* Toast notifications */
+      #toast-container {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 1100;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .toast {
+        background: #111827;
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 8px;
+        min-width: 200px;
+        box-shadow: 0 6px 18px rgba(2, 6, 23, 0.2);
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 220ms ease;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .toast.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .toast-success {
+        background: linear-gradient(90deg, #10b981, #06b6d4);
+      }
+      .toast-error {
+        background: linear-gradient(90deg, #ef4444, #f97316);
+      }
+      .toast .toast-close {
+        background: transparent;
+        border: 0;
+        color: inherit;
+        font-size: 16px;
+        cursor: pointer;
+      }
+    </style>
   </head>
 
   <body class="admin-body">
@@ -37,14 +82,14 @@
       // Role guard: only admin can access this page
       (function () {
         try {
-          const user = JSON.parse(localStorage.getItem('user') || 'null');
-          if (!user || user.role !== 'admin') {
-            alert('Akses ditolak: Halaman ini hanya untuk admin');
-            window.location.href = 'not-found.html';
+          const user = JSON.parse(localStorage.getItem("user") || "null");
+          if (!user || user.role !== "admin") {
+            alert("Akses ditolak: Halaman ini hanya untuk admin");
+            window.location.href = "not-found.html";
           }
         } catch (e) {
-          console.warn('Role guard parse error', e);
-          window.location.href = 'not-found.html';
+          console.warn("Role guard parse error", e);
+          window.location.href = "not-found.html";
         }
       })();
     </script>
@@ -59,10 +104,6 @@
             <i class="fa fa-dashboard"></i>
             <span>Dashboard</span>
           </div>
-          <div class="menu-item" onclick="showSection('transactions', this)">
-            <i class="fa fa-credit-card"></i>
-            <span>Transaksi</span>
-          </div>
           <div class="menu-item" onclick="showSection('courses', this)">
             <i class="fa fa-book"></i>
             <span>Kursus</span>
@@ -70,10 +111,6 @@
           <div class="menu-item" onclick="showSection('users', this)">
             <i class="fa fa-users"></i>
             <span>Pengguna</span>
-          </div>
-          <div class="menu-item" onclick="showSection('earnings', this)">
-            <i class="fa fa-money"></i>
-            <span>Penghasilan</span>
           </div>
           <div class="menu-item" onclick="showSection('feedback', this)">
             <i class="fa fa-comments"></i>
@@ -97,23 +134,8 @@
           <h2 id="page-title">Dashboard</h2>
           <div class="admin-topbar-right">
             <div class="user-profile">
-              <div
-                class="user-profile"
-                style="
-                  background: #667eea;
-                  width: 40px;
-                  height: 40px;
-                  border-radius: 50%;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  color: white;
-                  font-weight: bold;
-                "
-              >
-                AD
-              </div>
-              <div class="user-name">Admin</div>
+              <div class="user-avatar" id="user-avatar">AD</div>
+              <div class="user-name" id="user-name">Admin</div>
             </div>
           </div>
         </div>
@@ -141,67 +163,13 @@
                 <div class="stat-value" id="total-courses">0</div>
                 <div class="stat-change">Kursus aktif</div>
               </div>
-
-              <div class="stat-card orders">
-                <div class="stat-icon">
-                  <i class="fa fa-shopping-cart"></i>
-                </div>
-                <div class="stat-label">Total Pesanan</div>
-                <div class="stat-value" id="total-orders">0</div>
-                <div class="stat-change">Semua waktu</div>
-              </div>
-
-              <div class="stat-card revenue">
-                <div class="stat-icon">
-                  <i class="fa fa-money"></i>
-                </div>
-                <div class="stat-label">Total Pendapatan</div>
-                <div class="stat-value" id="total-revenue">Rp 0</div>
-                <div class="stat-change positive">Dari pesanan terbayar</div>
-              </div>
-            </div>
-
-            <!-- Charts -->
-            <div class="chart-container">
-              <h3>Statistik Pendapatan</h3>
-              <div class="chart-placeholder">
-                <i class="fa fa-line-chart"></i> Grafik akan ditampilkan di sini
-              </div>
-            </div>
-          </section>
-
-          <!-- Transactions Section -->
-          <section class="dashboard-section" id="transactions">
-            <div class="table-container">
-              <h3>Daftar Transaksi</h3>
-              <div class="table-responsive">
-                <table class="admin-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Pengguna</th>
-                      <th>Kursus</th>
-                      <th>Jumlah</th>
-                      <th>Status</th>
-                      <th>Tanggal</th>
-                    </tr>
-                  </thead>
-                  <tbody id="transactions-table">
-                    <tr>
-                      <td colspan="6" class="empty-state">
-                        <p>Tidak ada data transaksi</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
             </div>
           </section>
 
           <!-- Courses Section -->
           <section class="dashboard-section" id="courses">
             <div class="table-container">
-              <h3>Daftar Kursus</h3>
+              <h3>Kursus Terbitan</h3>
               <div class="table-responsive">
                 <table class="admin-table">
                   <thead>
@@ -209,15 +177,36 @@
                       <th>ID</th>
                       <th>Judul</th>
                       <th>Instruktur</th>
-                      <th>Harga</th>
                       <th>Status</th>
                       <th>Aksi</th>
                     </tr>
                   </thead>
-                  <tbody id="courses-table">
+                  <tbody id="courses-published-table">
                     <tr>
-                      <td colspan="6" class="empty-state">
-                        <p>Tidak ada data kursus</p>
+                      <td colspan="5" class="empty-state">
+                        <p>Tidak ada kursus terbit</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 style="margin-top: 28px">Kursus Draft / Belum Terbit</h3>
+              <div class="table-responsive">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Judul</th>
+                      <th>Instruktur</th>
+                      <th>Status</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="courses-draft-table">
+                    <tr>
+                      <td colspan="5" class="empty-state">
+                        <p>Tidak ada kursus draft</p>
                       </td>
                     </tr>
                   </tbody>
@@ -255,66 +244,43 @@
           </section>
 
           <div id="editUserModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <h3>Edit Pengguna</h3>
-        <form id="editUserForm">
-            <input type="hidden" id="edit-user-id" name="id">
+            <div class="modal-content">
+              <span class="close-btn">&times;</span>
+              <h3>Edit Pengguna</h3>
+              <form id="editUserForm">
+                <input type="hidden" id="edit-user-id" name="id" />
 
-            <div class="form-group">
-                <label for="edit-fullname">Nama Lengkap</label>
-                <input type="text" id="edit-fullname" name="fullname">
-            </div>
+                <div class="form-group">
+                  <label for="edit-fullname">Nama Lengkap</label>
+                  <input type="text" id="edit-fullname" name="fullname" />
+                </div>
 
-            <div class="form-group">
-                <label for="edit-username">Username</label>
-                <input type="text" id="edit-username" name="username">
-            </div>
+                <div class="form-group">
+                  <label for="edit-username">Username</label>
+                  <input type="text" id="edit-username" name="username" />
+                </div>
 
-            <div class="form-group">
-                <label for="edit-email">Email</label>
-                <input type="email" id="edit-email" name="email">
-            </div>
+                <div class="form-group">
+                  <label for="edit-email">Email</label>
+                  <input type="email" id="edit-email" name="email" />
+                </div>
 
-            <div class="form-group">
-                <label for="edit-role">Role</label>
-                <select id="edit-role" name="role">
-                    <option value="" selected>-- Tidak Diubah --</option> 
+                <div class="form-group">
+                  <label for="edit-role">Role</label>
+                  <select id="edit-role" name="role">
+                    <option value="" selected>-- Tidak Diubah --</option>
                     <option value="admin">Admin</option>
+                    <option value="instructor">Instructor</option>
                     <option value="user">User</option>
-                    </select>
-            </div>
+                  </select>
+                </div>
 
-            <button type="submit" class="btn-admin btn-primary-admin">Simpan Perubahan</button>
-        </form>
-    </div>
-</div>
-
-          <!-- Earnings Section -->
-          <section class="dashboard-section" id="earnings">
-            <div class="table-container">
-              <h3>Penghasilan Instruktur</h3>
-              <div class="table-responsive">
-                <table class="admin-table">
-                  <thead>
-                    <tr>
-                      <th>ID Kursus</th>
-                      <th>Judul Kursus</th>
-                      <th>Pendapatan</th>
-                      <th>Total Pendaftar</th>
-                    </tr>
-                  </thead>
-                  <tbody id="earnings-table">
-                    <tr>
-                      <td colspan="4" class="empty-state">
-                        <p>Tidak ada data penghasilan</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+                <button type="submit" class="btn-admin btn-primary-admin">
+                  Simpan Perubahan
+                </button>
+              </form>
             </div>
-          </section>
+          </div>
 
           <!-- Feedback Section -->
           <section class="dashboard-section" id="feedback">
@@ -367,12 +333,11 @@
                       <th>Rating</th>
                       <th>Komentar</th>
                       <th>Tanggal</th>
-                      <th>Aksi</th>
                     </tr>
                   </thead>
                   <tbody id="feedback-table">
                     <tr>
-                      <td colspan="7" class="empty-state">
+                      <td colspan="6" class="empty-state">
                         <p>Tidak ada data feedback</p>
                       </td>
                     </tr>
@@ -384,876 +349,654 @@
 
           <!-- Settings Section -->
           <section class="dashboard-section" id="settings">
-            <div style="max-width: 600px">
+            <div style="max-width: 700px">
               <div class="table-container">
                 <h3>Pengaturan</h3>
-                <form id="settings-form">
-                  <div class="form-group">
-                    <label>Nama Admin</label>
-                    <input type="text" value="Administrator" required />
-                  </div>
 
+                <form id="profile-form">
                   <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" value="admin@edumark.com" required />
-                  </div>
-
-                  <div class="form-group">
-                    <label
-                      >Password Baru (Kosongkan jika tidak ingin
-                      mengubah)</label
-                    >
+                    <label for="admin-name">Nama Admin</label>
                     <input
-                      type="password"
-                      placeholder="Masukkan password baru"
+                      id="admin-name"
+                      type="text"
+                      value="Administrator"
+                      required
                     />
                   </div>
 
                   <div class="form-group">
-                    <label>Notifikasi Email</label>
-                    <select>
-                      <option selected>Aktif</option>
-                      <option>Nonaktif</option>
-                    </select>
-                  </div>
-
-                  <div class="form-group">
-                    <label>Tema Dashboard</label>
-                    <select>
-                      <option selected>Gelap</option>
-                      <option>Terang</option>
-                      <option>Otomatis</option>
-                    </select>
+                    <label for="admin-email">Email</label>
+                    <input
+                      id="admin-email"
+                      type="email"
+                      value="admin@edumark.com"
+                      required
+                    />
                   </div>
 
                   <button type="submit" class="btn-admin btn-primary-admin">
-                    Simpan Perubahan
-                  </button>
-                  <button type="reset" class="btn-admin btn-secondary-admin">
-                    Batal
+                    Simpan Profil
                   </button>
                 </form>
+
+                <form id="password-form" style="margin-top: 18px">
+                  <h4>Ganti Password</h4>
+                  <div class="form-group">
+                    <label for="admin-current-password"
+                      >Password Saat Ini</label
+                    >
+                    <input id="admin-current-password" type="password" />
+                  </div>
+                  <div class="form-group">
+                    <label for="admin-new-password">Password Baru</label>
+                    <input id="admin-new-password" type="password" />
+                  </div>
+                  <div class="form-group">
+                    <label for="admin-new-password-confirm"
+                      >Konfirmasi Password Baru</label
+                    >
+                    <input id="admin-new-password-confirm" type="password" />
+                  </div>
+                  <button type="submit" class="btn-admin btn-primary-admin">
+                    Ganti Password
+                  </button>
+                </form>
+
+                <div style="margin-top: 20px">
+                  <button
+                    id="delete-account-btn"
+                    class="btn-admin btn-danger-admin"
+                  >
+                    Hapus Akun
+                  </button>
+                </div>
               </div>
             </div>
           </section>
         </div>
       </div>
     </div>
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     <!-- Scripts -->
     <script src="assets/js/vendor/jquery-1.12.4.min.js"></script>
     <script src="assets/js/bootstrap.min.js"></script>
     <script type="module">
-      // Import API functions
       import {
         getAdminOverview,
-        getAdminTransactions,
         getPublishedCourses,
+        getUnpublishedCourses,
+        getAllCoursesByStatus,
         getAllUsers,
-        getUserById,
-        updateUser,
-        deleteUser,
+        updateUser as apiUpdateUser,
+        deleteUser as apiDeleteUser,
         getAllFeedback,
-        getInstructorEarnings,
+        deleteFeedback as apiDeleteFeedback,
         getProfile,
-        deleteFeedback,
+        publishCourse,
+        unpublishCourse,
+        updateAdminProfile,
+        changeAdminPassword,
+        deleteAdminAccount,
       } from "./assets/js/api/dashboard.js";
+
       import { logoutUser } from "./assets/js/api/auth.js";
 
-      // Make functions global for onclick handlers
-      window.deleteFeedback = deleteFeedback;
-      window.showSection = showSection;
-      window.logout = logout;
-      window.viewFeedback = viewFeedback;
-
-      // Expose auth helpers
-      window.apiAuth = { logoutUser };
-
-      // Store API functions globally
-      window.apiDashboard = {
-        getAdminOverview,
-        getAdminTransactions,
-        getPublishedCourses,
-        getAllUsers,
-        getUserById,
-        updateUser,
-        deleteUser,
-        getAllFeedback,
-        getInstructorEarnings,
-        getProfile,
-        deleteFeedback,
-      };
-    </script>
-    <script>
-      // Sample data untuk dashboard (fallback)
+      // Global data store
       let dashboardData = {
-        overview: {
-          total_users: 1250,
-          total_courses: 45,
-          total_orders: 320,
-          total_revenue: 15750000,
-        },
-        transactions: [
-          {
-            id: 1,
-            user: "Budi Santoso",
-            course: "Web Development",
-            amount: 99000,
-            status: "paid",
-            date: "2025-11-12",
-          },
-          {
-            id: 2,
-            user: "Siti Nurhaliza",
-            course: "Mobile App Dev",
-            amount: 149000,
-            status: "pending",
-            date: "2025-11-11",
-          },
-          {
-            id: 3,
-            user: "Ahmad Wijaya",
-            course: "Data Science",
-            amount: 199000,
-            status: "paid",
-            date: "2025-11-10",
-          },
-        ],
-        courses: [
-          {
-            id: 1,
-            title: "Web Development Bootcamp",
-            instructor: "Hendra Gunawan",
-            price: 99000,
-            status: "published",
-          },
-          {
-            id: 2,
-            title: "Mobile App Development",
-            instructor: "Siti Khotijah",
-            price: 149000,
-            status: "published",
-          },
-          {
-            id: 3,
-            title: "Data Science Fundamental",
-            instructor: "Dr. Dwiputra",
-            price: 199000,
-            status: "draft",
-          },
-        ],
-         earnings: [
-          {
-            course_id: 1,
-            course_title: "Web Development Bootcamp",
-            revenue: 4950000,
-            total_enrollment: 50,
-          },
-          {
-            course_id: 2,
-            course_title: "Mobile App Development",
-            revenue: 3580000,
-            total_enrollment: 24,
-          },
-        ],
-        feedbacks: [
-          {
-            id: 1,
-            user_id: 1,
-            user_name: "Budi Santoso",
-            course_id: 1,
-            course_title: "Web Development Bootcamp",
-            rating: 5,
-            comment:
-              "Kursus ini sangat bagus! Materi dijelaskan dengan sangat detail dan mudah dipahami.",
-            created_at: "2025-11-12",
-          },
-          {
-            id: 2,
-            user_id: 2,
-            user_name: "Siti Nurhaliza",
-            course_id: 1,
-            course_title: "Web Development Bootcamp",
-            rating: 4,
-            comment: "Bagus, tapi penjelasan video bisa diperlambat sedikit.",
-            created_at: "2025-11-11",
-          },
-          {
-            id: 3,
-            user_id: 3,
-            user_name: "Ahmad Wijaya",
-            course_id: 2,
-            course_title: "Mobile App Development",
-            rating: 5,
-            comment:
-              "Instruktur sangat responsif terhadap pertanyaan. Sangat merekomendasikan!",
-            created_at: "2025-11-10",
-          },
-          {
-            id: 4,
-            user_id: 1,
-            user_name: "Budi Santoso",
-            course_id: 2,
-            course_title: "Mobile App Development",
-            rating: 3,
-            comment: "Cukup baik, tapi ada beberapa materi yang kurang jelas.",
-            created_at: "2025-11-09",
-          },
-          {
-            id: 5,
-            user_id: 4,
-            user_name: "Rini Pratiwi",
-            course_id: 1,
-            course_title: "Web Development Bootcamp",
-            rating: 4,
-            comment:
-              "Materi lengkap dan terstruktur dengan baik. Harga sebanding dengan kualitas.",
-            created_at: "2025-11-08",
-          },
-        ],
+        overview: {},
+        courses: [],
+        users: [],
+        feedbacks: [],
       };
 
-      // Initialize dashboard with API fetch
+      // Normalize helper
+      const getVal = (...vals) =>
+        vals.find((v) => v !== undefined && v !== null && v !== "");
+
+      // Normalize various API course responses into an array
+      function normalizeCourses(resp) {
+        if (!resp) return [];
+        if (Array.isArray(resp)) return resp;
+        if (resp.courses && Array.isArray(resp.courses)) return resp.courses;
+        if (resp.data && Array.isArray(resp.data)) return resp.data;
+        if (resp.items && Array.isArray(resp.items)) return resp.items;
+        // If resp has a single course object keyed by id, return as array
+        if (typeof resp === "object") {
+          // try to detect object with numeric keys
+          const arr = Object.values(resp).filter(
+            (v) => v && typeof v === "object" && (v.id || v.ID || v.title)
+          );
+          if (arr.length) return arr;
+        }
+        return [];
+      }
+
+      // Get readable instructor name from various shapes
+      function getInstructorName(instr) {
+        if (!instr) return "-";
+        if (typeof instr === "string") return instr;
+        if (typeof instr === "object") {
+          return (
+            getVal(
+              instr.name,
+              instr.full_name,
+              instr.username,
+              instr.displayName,
+              instr.email
+            ) || "-"
+          );
+        }
+        return String(instr);
+      }
+
+      // ----------------------------
+      // Toast helper
+      // ----------------------------
+      function showToast(message, type = "info", timeout = 3500) {
+        try {
+          const container = document.getElementById("toast-container");
+          if (!container) return alert(message);
+          const el = document.createElement("div");
+          el.className =
+            "toast " +
+            (type === "success"
+              ? "toast-success"
+              : type === "error"
+              ? "toast-error"
+              : "");
+          el.innerHTML = `<div class="toast-message">${message}</div><button class="toast-close" aria-label="Close">&times;</button>`;
+          container.appendChild(el);
+          // show
+          requestAnimationFrame(() => el.classList.add("visible"));
+          el.querySelector(".toast-close").addEventListener("click", () => {
+            el.classList.remove("visible");
+            setTimeout(() => el.remove(), 220);
+          });
+          setTimeout(() => {
+            el.classList.remove("visible");
+            setTimeout(() => el.remove(), 220);
+          }, timeout);
+        } catch (e) {
+          console.warn("Toast failed", e);
+          alert(message);
+        }
+      }
+
+      // ----------------------------
+      // SweetAlert helpers
+      // ----------------------------
+      async function swConfirm(message, title = "Konfirmasi") {
+        try {
+          const result = await Swal.fire({
+            title: title,
+            text: message,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Ya",
+            cancelButtonText: "Batal",
+            reverseButtons: true,
+          });
+          return !!result.isConfirmed;
+        } catch (e) {
+          console.warn("swConfirm failed", e);
+          return false;
+        }
+      }
+
+      function swNotify(message, icon = "success", timeout = 3000) {
+        try {
+          Swal.fire({
+            toast: true,
+            position: "bottom-end",
+            icon: icon,
+            title: message,
+            showConfirmButton: false,
+            timer: timeout,
+            timerProgressBar: true,
+          });
+        } catch (e) {
+          console.warn("swNotify failed", e);
+          showToast(message, icon === "error" ? "error" : "success", timeout);
+        }
+      }
+
+      // ----------------------------
+      // INIT DASHBOARD
+      // ----------------------------
       async function initDashboard() {
-        // Show loading state
-        const content = document.querySelector(".admin-content");
-        if (content) content.style.opacity = "0.6";
+        document.querySelector(".admin-content").style.opacity = "0.6";
 
         try {
-          // Fetch API data in parallel using Promise.allSettled for graceful fallback
-          const [
-            overviewResult,
-            transactionsResult,
-            coursesResult,
-            usersResult,
-            feedbackResult,
-            earningsResult,
-          ] = await Promise.allSettled([
-            window.apiDashboard.getAdminOverview(),
-            window.apiDashboard.getAdminTransactions(),
-            window.apiDashboard.getPublishedCourses(),
-            window.apiDashboard.getAllUsers(),
-            window.apiDashboard.getUserById(),
-            window.apiDashboard.updateUser(),
-            window.apiDashboard.deleteUser(),
-            window.apiDashboard.getAllFeedback(),
-            window.apiDashboard.getInstructorEarnings(),
+          // fetch overview, users and feedback in parallel
+          const [overview, users, feedback] = await Promise.all([
+            getAdminOverview(),
+            getAllUsers(),
+            getAllFeedback(),
           ]);
 
-          // Merge successful API responses into dashboardData
-          if (overviewResult.status === "fulfilled") {
-            dashboardData.overview = overviewResult.value;
+          dashboardData.overview = overview || {};
+          dashboardData.users = users?.users || users || [];
+          dashboardData.feedbacks = feedback?.feedbacks || feedback || [];
+
+          // try to prefill profile fields
+          try {
+            const profile = await getProfile();
+            if (profile) {
+              const nameEl = document.getElementById("admin-name");
+              const emailEl = document.getElementById("admin-email");
+              if (nameEl)
+                nameEl.value =
+                  profile.full_name ||
+                  profile.name ||
+                  profile.username ||
+                  nameEl.value;
+              if (emailEl) emailEl.value = profile.email || emailEl.value;
+            }
+          } catch (e) {
+            // non-fatal
+            console.warn("Could not fetch profile to prefill settings", e);
           }
-          if (
-            transactionsResult.status === "fulfilled" &&
-            transactionsResult.value
-          ) {
-            dashboardData.transactions = Array.isArray(transactionsResult.value)
-              ? transactionsResult.value
-              : transactionsResult.value.transactions || [];
-          }
-          if (coursesResult.status === "fulfilled" && coursesResult.value) {
-            dashboardData.courses = Array.isArray(coursesResult.value)
-              ? coursesResult.value
-              : coursesResult.value.courses || [];
-          }
-          if (usersResult.status === "fulfilled" && usersResult.value) {
-            dashboardData.users = Array.isArray(usersResult.value)
-              ? usersResult.value
-              : usersResult.value.users || [];
-          }
-          if (feedbackResult.status === "fulfilled" && feedbackResult.value) {
-            dashboardData.feedbacks = Array.isArray(feedbackResult.value)
-              ? feedbackResult.value
-              : feedbackResult.value.feedbacks || [];
-          }
-          if (earningsResult.status === "fulfilled" && earningsResult.value) {
-            dashboardData.earnings = Array.isArray(earningsResult.value)
-              ? earningsResult.value
-              : earningsResult.value.courses || [];
-          }
-        } catch (error) {
-          console.error("Error fetching dashboard data:", error);
-          console.log("Falling back to sample data");
-        } finally {
-          if (content) content.style.opacity = "1";
-          // Render all sections with data (API or sample)
-          loadOverviewData();
-          loadTransactionsData();
-          loadCoursesData();
-          loadUsersData();
-          loadEarningsData();
-          loadFeedbackData();
-          populateCourseFilter();
-        }
-      }
 
-      // Load Overview Data
-      function loadOverviewData() {
-        const data = dashboardData.overview;
-        document.getElementById("total-users").textContent =
-          data.total_users.toLocaleString("id-ID");
-        document.getElementById("total-courses").textContent =
-          data.total_courses;
-        document.getElementById("total-orders").textContent = data.total_orders;
-        document.getElementById("total-revenue").textContent =
-          "Rp " + data.total_revenue.toLocaleString("id-ID");
-      }
-
-      // Helpers to normalize backend or sample responses
-      function getFirst() {
-        for (let i = 0; i < arguments.length; i++) {
-          const v = arguments[i];
-          if (v !== undefined && v !== null && v !== "") return v;
-        }
-        return "";
-      }
-
-      function formatDateVal(d) {
-        if (!d) return "";
-        const dt = new Date(d);
-        if (!isNaN(dt)) return dt.toLocaleDateString("id-ID");
-        return d;
-      }
-
-      function getUserName(obj) {
-        return (
-          getFirst(obj.user, obj.user_name) ||
-          (obj.User &&
-            getFirst(
-              obj.User.full_name,
-              obj.User.FullName,
-              obj.User.fullName,
-              obj.User.name,
-              obj.User.username
-            )) ||
-          ""
-        );
-      }
-
-      function getCourseTitle(obj) {
-        return (
-          getFirst(obj.course, obj.course_title) ||
-          (obj.Course && getFirst(obj.Course.title, obj.Course.Title)) ||
-          ""
-        );
-      }
-
-      function getId(obj) {
-        return getFirst(obj.id, obj.ID) || "";
-      }
-
-      // Load Transactions Data (normalized)
-      function loadTransactionsData() {
-        const tbody = document.getElementById("transactions-table");
-        tbody.innerHTML = "";
-
-        const raw = dashboardData.transactions || [];
-        if (raw.length === 0) {
-          tbody.innerHTML =
-            '<tr><td colspan="6" class="empty-state"><p>Tidak ada data transaksi</p></td></tr>';
-          return;
-        }
-
-        const normalized = raw.map((tx) => {
-          return {
-            id: getId(tx),
-            user: getUserName(tx),
-            course: getCourseTitle(tx),
-            amount: getFirst(tx.amount, tx.Amount, 0),
-            status: getFirst(tx.status, tx.Status, "unknown"),
-            date: getFirst(tx.date, tx.created_at, tx.CreatedAt)
-              ? formatDateVal(getFirst(tx.date, tx.created_at, tx.CreatedAt))
-              : "",
-          };
-        });
-
-        normalized.forEach((tx) => {
-          const row = `
-                    <tr>
-                        <td>#${tx.id}</td>
-                        <td>${tx.user}</td>
-                        <td>${tx.course}</td>
-                        <td>Rp ${Number(tx.amount).toLocaleString("id-ID")}</td>
-                        <td><span class="status-badge status-${tx.status}">${(
-            tx.status || ""
-          ).toUpperCase()}</span></td>
-                        <td>${tx.date}</td>
-                    </tr>
-                `;
-          tbody.innerHTML += row;
-        });
-      }
-
-      // Load Courses Data (normalize instructor fallback)
-      function loadCoursesData() {
-        const tbody = document.getElementById("courses-table");
-        tbody.innerHTML = "";
-
-        const courses = dashboardData.courses || [];
-        if (courses.length === 0) {
-          tbody.innerHTML =
-            '<tr><td colspan="6" class="empty-state"><p>Tidak ada data kursus</p></td></tr>';
-          return;
-        }
-
-        courses.forEach((course) => {
-          // try multiple sources for instructor name
-          let instructor = getFirst(course.instructor, course.instructor_name);
-          if (!instructor && course.Instructor) {
-            instructor = getFirst(
-              course.Instructor.full_name,
-              course.Instructor.FullName,
-              course.Instructor.fullName,
-              course.Instructor.name
-            );
-          }
-          if (!instructor) {
-            const iid = getFirst(
-              course.instructor_id,
-              course.InstructorID,
-              course.InstructorId
-            );
-            if (iid && Array.isArray(dashboardData.users)) {
-              const u = dashboardData.users.find(
-                (x) => String(x.id) == String(iid)
+          // Try admin aggregated endpoint first
+          try {
+            const statusResp = await getAllCoursesByStatus();
+            if (statusResp) {
+              if (Array.isArray(statusResp)) {
+                dashboardData.courses = statusResp;
+              } else if (statusResp.published || statusResp.unpublished) {
+                const pubs = normalizeCourses(statusResp.published || []);
+                const unpubs = normalizeCourses(statusResp.unpublished || []);
+                dashboardData.courses = [...pubs, ...unpubs];
+              } else {
+                dashboardData.courses = normalizeCourses(statusResp);
+              }
+            }
+          } catch (e) {
+            // fallback to separate endpoints
+            try {
+              const pub = await getPublishedCourses();
+              const unpub = await getUnpublishedCourses();
+              dashboardData.courses = [
+                ...normalizeCourses(pub),
+                ...normalizeCourses(unpub),
+              ];
+            } catch (e2) {
+              console.warn(
+                "Failed to fetch courses via admin endpoints, fallback to /courses",
+                e2
               );
-              if (u)
-                instructor = getFirst(
-                  u.fullname,
-                  u.full_name,
-                  u.fullName,
-                  u.fullName,
-                  u.username
-                );
+              const pubOnly = await getPublishedCourses();
+              dashboardData.courses = normalizeCourses(pubOnly);
             }
           }
+        } catch (err) {
+          console.error("Error loading dashboard:", err);
+        }
 
-          const row = `
-                    <tr>
-                        <td>#${getId(course)}</td>
-                        <td>${getFirst(course.title, course.name)}</td>
-                        <td>${instructor || "-"}</td>
-                        <td>Rp ${Number(
-                          getFirst(course.price, course.Price, 0)
-                        ).toLocaleString("id-ID")}</td>
-                        <td><span class="status-badge status-${getFirst(
-                          course.status,
-                          course.published,
-                          "unknown"
-                        )}">${String(
-            getFirst(course.status, course.published, "")
-          ).toUpperCase()}</span></td>
-                        <td>
-                          <button class="btn-admin btn-secondary-admin" style="padding: 6px 12px; font-size: 12px;" onclick="editUser(${getId(
-                            user
-                          )})">Edit</button>
-                          <button class="btn-admin btn-danger-admin" style="padding: 6px 12px; font-size: 12px;" onclick="deleteUserHandler(${getId(
-                            user
-                          )})">Hapus</button>
-                        </td>
-                    </tr>
-                `;
-          tbody.innerHTML += row;
-        });
+        document.querySelector(".admin-content").style.opacity = "1";
+
+        loadOverview();
+        loadCourses();
+        loadUsers();
+        loadFeedback();
+        populateCourseFilter();
+      }
+      // showSection will be exposed after its declaration
+
+      // ----------------------------
+      // OVERVIEW
+      // ----------------------------
+      function loadOverview() {
+        const d = dashboardData.overview;
+        document.getElementById("total-users").textContent = d.total_users ?? 0;
+        document.getElementById("total-courses").textContent =
+          d.total_courses ?? 0;
       }
 
-      // Load Users Data (normalize name fields)
-      function loadUsersData() {
+      // ----------------------------
+      // COURSES LIST
+      // ----------------------------
+      function loadCourses() {
+        const publishedTbody = document.getElementById(
+          "courses-published-table"
+        );
+        const draftTbody = document.getElementById("courses-draft-table");
+        publishedTbody.innerHTML = "";
+        draftTbody.innerHTML = "";
+
+        if (!dashboardData.courses.length) {
+          publishedTbody.innerHTML = `<tr><td colspan="5" class="empty-state">Tidak ada kursus terbit</td></tr>`;
+          draftTbody.innerHTML = `<tr><td colspan="5" class="empty-state">Tidak ada kursus draft</td></tr>`;
+          return;
+        }
+
+        const published = dashboardData.courses.filter((c) => !!c.published);
+        const drafts = dashboardData.courses.filter((c) => !c.published);
+
+        if (!published.length) {
+          publishedTbody.innerHTML = `<tr><td colspan="5" class="empty-state">Tidak ada kursus terbit</td></tr>`;
+        } else {
+          published.forEach((c) => {
+            const id = getVal(c.id, c.ID);
+            const row = `
+              <tr>
+                <td>#${id}</td>
+                <td>${c.title || "-"}</td>
+                <td>${getInstructorName(c.instructor)}</td>
+                <td>Published</td>
+                <td>
+                  <button class="btn-admin btn-warning-admin" onclick="window.togglePublishCourse && window.togglePublishCourse('${id}', false)">Unpublish</button>
+                  <button class="btn-admin btn-secondary-admin" onclick="window.viewCourseDetail && window.viewCourseDetail('${id}')">Detail</button>
+                </td>
+              </tr>`;
+            publishedTbody.innerHTML += row;
+          });
+        }
+
+        if (!drafts.length) {
+          draftTbody.innerHTML = `<tr><td colspan="5" class="empty-state">Tidak ada kursus draft</td></tr>`;
+        } else {
+          drafts.forEach((c) => {
+            const id = getVal(c.id, c.ID);
+            const row = `
+              <tr>
+                <td>#${id}</td>
+                <td>${c.title || "-"}</td>
+                <td>${getInstructorName(c.instructor)}</td>
+                <td>Draft</td>
+                <td>
+                  <button class="btn-admin btn-success-admin" onclick="window.togglePublishCourse && window.togglePublishCourse('${id}', true)">Publish</button>
+                  <button class="btn-admin btn-secondary-admin" onclick="window.viewCourseDetail && window.viewCourseDetail('${id}')">Detail</button>
+                </td>
+              </tr>`;
+            draftTbody.innerHTML += row;
+          });
+        }
+      }
+
+      // ----------------------------
+      // USERS LIST
+      // ----------------------------
+      function loadUsers() {
         const tbody = document.getElementById("users-table");
         tbody.innerHTML = "";
 
-        const users = dashboardData.users || [];
-        if (users.length === 0) {
-          tbody.innerHTML =
-            '<tr><td colspan="6" class="empty-state"><p>Tidak ada data pengguna</p></td></tr>';
+        if (!dashboardData.users.length) {
+          tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Tidak ada pengguna</td></tr>`;
           return;
         }
 
-        const usersMap = {}; 
+        dashboardData.users.forEach((u) => {
+          const id = getVal(u.id, u.ID);
+          const name = getVal(u.fullname, u.full_name, u.username);
+          const role = (u.role || "user").toUpperCase();
 
-        users.forEach((user) => {
-          const id = getId(user); 
-          usersMap[id] = user;
-          
-          const name = getFirst(
-            user.fullname,
-            user.full_name,
-            user.fullName 
-          );
-          const username = getFirst(
-              user.username,
-              user.user_name,
-              user.username
-          );
-          const email = getFirst(user.email, user.Email);
-          const role = String(getFirst(user.role, user.Role, "")).toUpperCase();
-          
-          const row = document.createElement('tr');
-          row.innerHTML = `
-                        <td>#${id}</td>
-                        <td>${name}</td>
-                        <td>${username}</td>
-                        <td>${email}</td>
-                        <td><span class="status-badge" style="background: rgba(102, 126, 234, 0.1); color: #667eea;">${role}</span></td>
-                        <td>
-                            <button class="btn-admin btn-secondary-admin edit-btn" 
-                                data-user-id="${id}" 
-                                style="padding: 6px 12px; font-size: 12px;">Edit</button>
-                            <button class="btn-admin btn-danger-admin delete-btn" 
-                            style="padding: 6px 12px; font-size: 12px;"
-                            onclick="deleteUserAction('${id}', '${name}')">Hapus</button> 
-                            </td>
-                        </td>
-                    `;
-          tbody.appendChild(row);
+          tbody.innerHTML += `
+            <tr>
+              <td>#${id}</td>
+              <td>${name}</td>
+              <td>${u.username}</td>
+              <td>${u.email}</td>
+              <td><span class="status-badge">${role}</span></td>
+              <td>
+                <button class="btn-admin btn-secondary-admin" onclick="editUserModal('${id}')">Edit</button>
+                <button class="btn-admin btn-danger-admin" onclick="deleteUserAction('${id}', '${name}')">Hapus</button>
+              </td>
+            </tr>`;
         });
-        
-        document.querySelectorAll('.edit-btn').forEach(button => {
-            button.addEventListener('click', (event) => {
-                const userId = event.target.getAttribute('data-user-id');
-                const userToEdit = usersMap[userId];
-                if (userToEdit) {
-                    showEditModal(userToEdit);
-                }
-            });
-        });
-      } 
-
-        function getUserId(user) {
-            if (user.ID !== null && user.ID !== undefined) {
-                return user.ID;
-            } 
-            if (user.id !== null && user.id !== undefined) {
-                return user.id;
-            } 
-            if (user._id !== null && user._id !== undefined) {
-                return user._id;
-            } 
-
-            // Jika kode mencapai sini, ID benar-benar hilang/bermasalah
-            console.error("ID pengguna hilang secara total pada objek:", user);
-            // FALLBACK TERAKHIR (ID acak)
-            return Math.random().toString(36).substring(7); 
-        }
-
-        // --- Fungsi untuk mengelola Modal Edit ---
-        const editModal = document.getElementById('editUserModal');
-        const closeBtn = document.querySelector('#editUserModal .close-btn');
-        const editForm = document.getElementById('editUserForm');
-
-        // Menutup modal ketika tombol 'x' diklik
-        closeBtn.onclick = function() {
-            editModal.style.display = "none";
-        }
-
-        // Menutup modal ketika user mengklik di luar modal
-        window.onclick = function(event) {
-            if (event.target == editModal) {
-                editModal.style.display = "none";
-            }
-        }
-
-        function showEditModal(user) {
-            // Ambil nilai yang konsisten dari objek user
-            const id = getId(user);
-            const name = getFirst(user.fullname, user.full_name, user.fullName);
-            const username = getFirst(user.username, user.user_name);
-            const email = getFirst(user.email, user.Email);
-            const role = String(getFirst(user.role, user.Role, "user")).toLowerCase();
-
-            // Isi form modal
-            document.getElementById('edit-user-id').value = id;
-            document.getElementById('edit-fullname').value = name;
-            document.getElementById('edit-username').value = username;
-            document.getElementById('edit-email').value = email;
-            document.getElementById('edit-role').value = role;
-
-            // Tampilkan modal
-            editModal.style.display = "block";
-        }
-
-        editForm.addEventListener('submit', function(event) {
-            event.preventDefault(); 
-
-            const userId = document.getElementById('edit-user-id').value;
-            const newFullname = document.getElementById('edit-fullname').value;
-            const newUsername = document.getElementById('edit-username').value;
-            const newEmail = document.getElementById('edit-email').value;
-            const newRole = document.getElementById('edit-role').value;
-
-            const updatedData = {
-                id: userId,
-                fullname: newFullname,
-                username: newUsername,
-                email: newEmail,
-                role: newRole
-            };
-            updateUser(updatedData);
-        });
-
-        async function updateUser(data) { // Tambahkan 'async' karena kita akan menggunakan await
-          const userIndex = dashboardData.users.findIndex(user => 
-              String(getUserId(user)) === String(data.id)
-          );
-
-          if (userIndex !== -1) {
-              // Data yang akan dikirim ke API:
-              const payload = {
-                  id: data.id,
-                  full_name: data.fullname, // Pastikan BE Anda menerima full_name atau sesuaikan key-nya
-                  username: data.username,
-                  email: data.email,
-                  role: data.role // Akan kosong jika tidak diubah
-              };
-              
-              // 1. PANGGIL FUNGSI HELPER YANG SUDAH ADA
-              try {
-                  console.log("Data akan dikirim ke server untuk ID:", data.id, payload);
-                  
-                  // Ganti fetch() manual dengan panggilan ke fungsi helper Anda
-                  await window.apiDashboard.updateUser(data.id, payload);
-
-                  // 2. Jika API sukses, update data lokal:
-                  const currentUser = dashboardData.users[userIndex];
-                  currentUser.fullname = data.fullname;
-                  currentUser.username = data.username;
-                  currentUser.email = data.email;
-                  if (data.role !== "") {
-                      currentUser.role = data.role;
-                  }
-                  
-                  // 3. Tutup modal dan refresh tabel
-                  editModal.style.display = "none";
-                  loadUsersData(); 
-                  
-                  alert(`Pengguna ${data.fullname} berhasil diperbarui.`);
-
-              } catch (error) {
-                  // Tangani error dari apiFetch (termasuk HTTP error 405)
-                  console.error('Error saat update:', error);
-                  // Error 405 atau lainnya akan ditangkap di sini
-                  alert(`Gagal memperbarui pengguna. Cek console. (Kemungkinan Error 405/Server)`);
-              }
-              
-          } else {
-              alert("Pengguna tidak ditemukan.");
-              console.error("ID tidak ditemukan dalam array dashboardData.users. ID yang dicari:", data.id);
-          }
-        }
-
-      async function deleteUserAction(id, userName) {
-          // 1. Konfirmasi pengguna
-          const isConfirmed = confirm(`Apakah Anda yakin ingin menghapus pengguna "${userName}" (ID: ${id})? Aksi ini tidak dapat dibatalkan.`);
-          
-          if (!isConfirmed) {
-              return; // Jika pengguna membatalkan
-          }
-
-          // 2. Kirim permintaan DELETE ke API
-          try {
-              console.log(`Mengirim permintaan DELETE untuk pengguna ID: ${id}`);
-              
-              // Memanggil fungsi helper deleteUser yang sudah Anda definisikan (asumsi dimuat di window.apiDashboard)
-              await window.apiDashboard.deleteUser(id);
-
-              // 3. Hapus pengguna dari data lokal (dashboardData.users)
-              // Kita gunakan String() untuk memastikan perbandingan tipe data yang aman (BIGINT/String)
-              const initialLength = dashboardData.users.length;
-              dashboardData.users = dashboardData.users.filter(user => 
-                  String(getUserId(user)) !== String(id)
-              );
-              
-              // 4. Muat ulang tabel dan berikan feedback
-              loadUsersData(); 
-
-              if (dashboardData.users.length < initialLength) {
-                  alert(`Pengguna "${userName}" (ID: ${id}) berhasil dihapus.`);
-              } else {
-                  // Ini mungkin terjadi jika pengguna sudah dihapus di server tetapi array lokal gagal di-filter
-                  alert(`Pengguna "${userName}" berhasil dihapus, tetapi data lokal mungkin tidak terupdate dengan sempurna. Tabel di-refresh.`);
-              }
-            
-          } catch (error) {
-              // Tangani kegagalan API (seperti error 404, 500, atau jaringan)
-              console.error("Gagal menghapus pengguna:", error);
-              alert(`Gagal menghapus pengguna "${userName}". Cek console untuk detail error.`);
-          }
       }
 
-      // Load Feedback Data (normalized from BE or sample)
-      function loadFeedbackData() {
+      // ----------------------------
+      // FEEDBACK LIST
+      // ----------------------------
+      function loadFeedback() {
         const tbody = document.getElementById("feedback-table");
         tbody.innerHTML = "";
 
-        const all = dashboardData.feedbacks || [];
-        if (all.length === 0) {
-          tbody.innerHTML =
-            '<tr><td colspan="7" class="empty-state"><p>Tidak ada data feedback</p></tr>';
+        if (!dashboardData.feedbacks || !dashboardData.feedbacks.length) {
+          tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Tidak ada feedback</td></tr>`;
           return;
         }
 
-        // Apply filters
         const courseFilter =
           document.getElementById("filter-course")?.value || "";
         const ratingFilter =
           document.getElementById("filter-rating")?.value || "";
 
-        let filtered = all.slice();
-
-        if (courseFilter) {
-          filtered = filtered.filter((fb) => {
-            const cid = getFirst(
-              fb.course_id,
-              fb.course && fb.course.id,
-              fb.Course && fb.Course.id
-            );
-            return String(cid) === String(courseFilter);
-          });
-        }
-
-        if (ratingFilter) {
-          filtered = filtered.filter(
-            (fb) =>
-              String(getFirst(fb.rating, fb.Rating)) === String(ratingFilter)
+        const filtered = dashboardData.feedbacks.filter((f) => {
+          // course id may appear in different shapes
+          const fid = getVal(
+            f.course_id,
+            f.courseId,
+            f.course && f.course.id,
+            f.course && f.course.ID
           );
-        }
 
-        if (filtered.length === 0) {
-          tbody.innerHTML =
-            '<tr><td colspan="7" class="empty-state"><p>Tidak ada feedback yang sesuai dengan filter</p></td></tr>';
+          if (courseFilter && String(fid) !== String(courseFilter))
+            return false;
+          if (ratingFilter && String(f.rating) !== String(ratingFilter))
+            return false;
+          return true;
+        });
+
+        if (!filtered.length) {
+          tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Tidak ada feedback sesuai filter</td></tr>`;
           return;
         }
 
-        filtered.forEach((feedback) => {
-          const userName = getFirst(
-            feedback.user_name,
-            getUserName(feedback),
-            feedback.User &&
-              getFirst(feedback.User.full_name, feedback.User.FullName)
-          );
-          const courseTitle = getFirst(
-            feedback.course_title,
-            getCourseTitle(feedback),
-            feedback.Course &&
-              getFirst(feedback.Course.title, feedback.Course.Title)
-          );
-          const rating = Number(getFirst(feedback.rating, feedback.Rating, 0));
-          const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+        filtered.forEach((f) => {
+          const id = getVal(f.id, f.ID);
+          const userName =
+            getVal(
+              f.user_name,
+              f.user && f.user.name,
+              f.user && f.user.username
+            ) || "-";
+          const courseTitle =
+            getVal(f.course_title, f.course && f.course.title) || "-";
+          const rating = f.rating || 0;
+          const dateStr = f.created_at
+            ? new Date(f.created_at).toLocaleDateString("id-ID")
+            : "-";
 
-          const row = `
-                    <tr>
-                        <td>#${getId(feedback)}</td>
-                        <td>${userName}</td>
-                        <td>${courseTitle}</td>
-                        <td><span class="rating-stars">${stars}</span> (${rating})</td>
-                        <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${
-                          feedback.comment || ""
-                        }">${feedback.comment || ""}</td>
-                        <td>${formatDateVal(
-                          getFirst(
-                            feedback.created_at,
-                            feedback.createdAt,
-                            feedback.CreatedAt
-                          )
-                        )}</td>
-                        <td>
-                            <button class="btn-admin btn-secondary-admin" style="padding: 6px 12px; font-size: 12px;" onclick="viewFeedback(${getId(
-                              feedback
-                            )})">Lihat</button>
-                            <button class="btn-admin btn-danger-admin" style="padding: 6px 12px; font-size: 12px;" onclick="deleteFeedback(${getId(
-                              feedback
-                            )})">Hapus</button>
-                        </td>
-                    </tr>
-                `;
-          tbody.innerHTML += row;
+          tbody.innerHTML += `
+            <tr>
+              <td>#${id}</td>
+              <td>${userName}</td>
+              <td>${courseTitle}</td>
+              <td>${"★".repeat(rating)}</td>
+              <td>${f.comment || ""}</td>
+              <td>${dateStr}</td>
+            </tr>`;
         });
       }
 
-      // Populate Course Filter
+      // ----------------------------
+      // FILTER FEEDBACK BY COURSE
+      // ----------------------------
       function populateCourseFilter() {
-        const filterSelect = document.getElementById("filter-course");
-        if (!filterSelect) return;
+        const select = document.getElementById("filter-course");
+        if (!select) return;
 
-        const courses = dashboardData.courses;
-        courses.forEach((course) => {
-          const option = document.createElement("option");
-          option.value = course.id;
-          option.textContent = course.title;
-          filterSelect.appendChild(option);
+        // reset options (leave first default option)
+        const first = select.querySelector('option[value=""]');
+        select.innerHTML = "";
+        if (first) select.appendChild(first);
+
+        dashboardData.courses.forEach((c) => {
+          const opt = document.createElement("option");
+          opt.value = getVal(c.id, c.ID) || "";
+          opt.textContent = c.title || "-";
+          select.appendChild(opt);
+        });
+      }
+
+      // Attach change listeners for feedback filters
+      (function attachFeedbackFilters() {
+        const courseSel = document.getElementById("filter-course");
+        const ratingSel = document.getElementById("filter-rating");
+        if (courseSel) courseSel.addEventListener("change", loadFeedback);
+        if (ratingSel) ratingSel.addEventListener("change", loadFeedback);
+      })();
+
+      // ----------------------------
+      // EDIT USER
+      // ----------------------------
+      window.editUserModal = (id) => {
+        const user = dashboardData.users.find((u) => getVal(u.id, u.ID) == id);
+        if (!user) return showToast("User tidak ditemukan.", "error");
+
+        document.getElementById("edit-user-id").value = id;
+        document.getElementById("edit-fullname").value = getVal(
+          user.fullname,
+          user.full_name
+        );
+        document.getElementById("edit-username").value = user.username;
+        document.getElementById("edit-email").value = user.email;
+        document.getElementById("edit-role").value = user.role;
+
+        document.getElementById("editUserModal").style.display = "block";
+      };
+
+      document
+        .getElementById("editUserForm")
+        ?.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const id = document.getElementById("edit-user-id").value;
+
+          const payload = {
+            full_name: document.getElementById("edit-fullname").value,
+            username: document.getElementById("edit-username").value,
+            email: document.getElementById("edit-email").value,
+            role: document.getElementById("edit-role").value,
+          };
+
+          const confirmMsg = `Simpan perubahan untuk pengguna #${id}?`;
+          const ok = await swConfirm(confirmMsg, "Simpan Perubahan");
+          if (!ok) return;
+
+          try {
+            await apiUpdateUser(id, payload);
+            swNotify("Pengguna berhasil diperbarui.", "success");
+            // close modal and refresh data
+            const editModal = document.getElementById("editUserModal");
+            if (editModal) editModal.style.display = "none";
+            // reload users list
+            try {
+              const users = await getAllUsers();
+              dashboardData.users =
+                users?.users || users || dashboardData.users;
+            } catch (e) {
+              // fallback: reload page
+              setTimeout(() => location.reload(), 900);
+              return;
+            }
+            loadUsers();
+          } catch (err) {
+            console.error(err);
+            swNotify("Gagal memperbarui pengguna.", "error");
+          }
         });
 
-        // Add event listeners for filters
-        document
-          .getElementById("filter-course")
-          ?.addEventListener("change", loadFeedbackData);
-        document
-          .getElementById("filter-rating")
-          ?.addEventListener("change", loadFeedbackData);
-      }
+      // Edit modal close handlers
+      (function attachEditModalHandlers() {
+        const editModal = document.getElementById("editUserModal");
+        if (!editModal) return;
+        const closeBtn = editModal.querySelector(".close-btn");
+        if (closeBtn)
+          closeBtn.addEventListener("click", () => {
+            editModal.style.display = "none";
+          });
+        window.addEventListener("click", (ev) => {
+          if (ev.target === editModal) editModal.style.display = "none";
+        });
+      })();
 
-      // View Feedback Detail
-      function viewFeedback(id) {
-        const feedback = dashboardData.feedbacks.find((fb) => fb.id === id);
-        if (feedback) {
-          alert(
-            `Feedback Detail\n\nUser: ${feedback.user_name}\nKursus: ${
-              feedback.course_title
-            }\nRating: ${"★".repeat(feedback.rating)}\n\nKomentar:\n${
-              feedback.comment
-            }`
-          );
-        }
-      }
-
-      // Delete Feedback - now calls API with fallback
-      async function deleteFeedbackHandler(id) {
-        if (!confirm("Apakah Anda yakin ingin menghapus feedback ini?")) {
-          return;
-        }
+      // ----------------------------
+      // DELETE USER
+      // ----------------------------
+      window.deleteUserAction = async (id, name) => {
+        const ok = await swConfirm(`Hapus user ${name}?`, "Hapus Pengguna");
+        if (!ok) return;
 
         try {
-          // Try to delete via API
-          await window.apiDashboard.deleteFeedback(id);
-          alert("Feedback berhasil dihapus");
-        } catch (error) {
-          console.warn("API delete failed, using local fallback:", error);
-          alert("Feedback berhasil dihapus (lokal)");
-        } finally {
-          // Remove from local data
+          await apiDeleteUser(id);
+          dashboardData.users = dashboardData.users.filter(
+            (u) => getVal(u.id, u.ID) != id
+          );
+          loadUsers();
+          swNotify("User berhasil dihapus.", "success");
+        } catch (e) {
+          console.error(e);
+          swNotify("Gagal menghapus user.", "error");
+        }
+      };
+
+      // ----------------------------
+      // DELETE FEEDBACK
+      // ----------------------------
+      window.deleteFeedback = async (id) => {
+        const ok = await swConfirm(`Hapus feedback #${id}?`, "Hapus Feedback");
+        if (!ok) return;
+        try {
+          await apiDeleteFeedback(id);
           dashboardData.feedbacks = dashboardData.feedbacks.filter(
-            (fb) => fb.id !== id
+            (f) => getVal(f.id, f.ID) != id
           );
-          loadFeedbackData();
+          loadFeedback();
+          swNotify("Feedback berhasil dihapus.", "success");
+        } catch (e) {
+          console.error(e);
+          swNotify("Gagal menghapus feedback.", "error");
         }
-      }
+      };
 
-      // Keep original deleteFeedback for backward compatibility
-      window.deleteFeedback = deleteFeedbackHandler;
-
-      // Delete user with API fallback
-      async function deleteUserHandler(id) {
-        if (!confirm("Apakah Anda yakin ingin menghapus user ini?")) return;
+      // Publish / Unpublish course action
+      window.togglePublishCourse = async (courseId, publish) => {
+        const name = publish ? "publish" : "unpublish";
+        const ok = await swConfirm(
+          `Anda yakin ingin ${name} kursus #${courseId}?`,
+          publish ? "Publish Kursus" : "Unpublish Kursus"
+        );
+        if (!ok) return;
         try {
-          await window.apiDashboard.deleteUser(id);
-          alert("User berhasil dihapus");
-        } catch (err) {
-          console.warn(
-            "API delete user failed, falling back to local removal",
-            err
-          );
-          alert("User dihapus secara lokal (API gagal)");
-        } finally {
-          dashboardData.users = (dashboardData.users || []).filter(
-            (u) => String(getId(u)) !== String(id)
-          );
-          loadUsersData();
-        }
-      }
+          if (publish) {
+            await publishCourse(courseId);
+          } else {
+            await unpublishCourse(courseId);
+          }
 
-      // Expose user handlers globally for onclick
-      window.deleteUserHandler = deleteUserHandler;
+          // update local state
+          dashboardData.courses = dashboardData.courses.map((c) => {
+            const id = getVal(c.id, c.ID);
+            if (String(id) === String(courseId)) {
+              return Object.assign({}, c, { published: !!publish });
+            }
+            return c;
+          });
+
+          loadCourses();
+          populateCourseFilter();
+          swNotify(
+            `Kursus berhasil di${publish ? "publish" : "unpublish"}.`,
+            "success"
+          );
+        } catch (err) {
+          console.error(err);
+          swNotify(`Gagal melakukan ${name} kursus.`, "error");
+        }
+      };
+
+      // ----------------------------
+      // LOGOUT
+      // ----------------------------
+      window.logout = async () => {
+        await logoutUser();
+        localStorage.clear();
+        window.location.href = "index.html";
+      };
 
       // Show Section
       function showSection(sectionId, element) {
@@ -1274,19 +1017,21 @@
         // Update page title
         const titles = {
           overview: "Dashboard",
-          transactions: "Transaksi",
           courses: "Kursus",
           users: "Pengguna",
-          earnings: "Penghasilan",
           feedback: "Feedback",
           settings: "Pengaturan",
         };
         document.getElementById("page-title").textContent = titles[sectionId];
       }
 
+      // Expose to global scope for inline menu onclicks
+      window.showSection = showSection;
+
       // Logout - call backend and clear token
       async function logout() {
-        if (!confirm("Apakah Anda yakin ingin keluar?")) return;
+        const ok = await swConfirm("Apakah Anda yakin ingin keluar?", "Logout");
+        if (!ok) return;
         try {
           // Call backend logout (stateless acknowledgement)
           if (
@@ -1306,17 +1051,96 @@
             localStorage.removeItem("token");
             localStorage.removeItem("user");
           } catch (e) {}
+          swNotify("Anda telah logout.", "success");
           window.location.href = "index.html";
         }
       }
 
       // Settings Form Submit
+      // Profile form submit
       document
-        .getElementById("settings-form")
-        ?.addEventListener("submit", function (e) {
+        .getElementById("profile-form")
+        ?.addEventListener("submit", async (e) => {
           e.preventDefault();
-          alert("Pengaturan akan disimpan setelah integrasi dengan backend");
-          // akan diintegrasikan dengan backend
+          const payload = {
+            full_name: document.getElementById("admin-name").value,
+            email: document.getElementById("admin-email").value,
+          };
+
+          const ok = await swConfirm(
+            "Simpan perubahan profil admin?",
+            "Simpan Profil"
+          );
+          if (!ok) return;
+
+          try {
+            await updateAdminProfile(payload);
+            swNotify("Profil berhasil diperbarui.", "success");
+          } catch (err) {
+            console.error(err);
+            swNotify("Gagal memperbarui profil.", "error");
+          }
+        });
+
+      // Password change submit
+      document
+        .getElementById("password-form")
+        ?.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const current = document.getElementById(
+            "admin-current-password"
+          ).value;
+          const nw = document.getElementById("admin-new-password").value;
+          const confirmPw = document.getElementById(
+            "admin-new-password-confirm"
+          ).value;
+          if (!current || !nw)
+            return swNotify(
+              "Masukkan password saat ini dan password baru.",
+              "error"
+            );
+          if (nw !== confirmPw)
+            return swNotify("Konfirmasi password tidak cocok.", "error");
+
+          const ok = await swConfirm(
+            "Anda yakin ingin mengganti password admin?",
+            "Ganti Password"
+          );
+          if (!ok) return;
+
+          try {
+            await changeAdminPassword({
+              current_password: current,
+              new_password: nw,
+            });
+            swNotify("Password berhasil diubah.", "success");
+            document.getElementById("admin-current-password").value = "";
+            document.getElementById("admin-new-password").value = "";
+            document.getElementById("admin-new-password-confirm").value = "";
+          } catch (err) {
+            console.error(err);
+            swNotify("Gagal mengubah password.", "error");
+          }
+        });
+
+      // Delete account
+      document
+        .getElementById("delete-account-btn")
+        ?.addEventListener("click", async () => {
+          const ok = await swConfirm(
+            "Anda yakin ingin menghapus akun ini? Tindakan ini tidak dapat dibatalkan.",
+            "Hapus Akun"
+          );
+          if (!ok) return;
+          try {
+            await deleteAdminAccount();
+            swNotify("Akun berhasil dihapus.", "success");
+            localStorage.clear();
+            setTimeout(() => (window.location.href = "index.html"), 800);
+          } catch (err) {
+            console.error(err);
+            swNotify("Gagal menghapus akun.", "error");
+          }
         });
 
       // Initialize on page load

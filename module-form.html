@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="assets/css/font-awesome.min.css" />
     <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
       body {
         background: #f5f7fa;
@@ -320,6 +321,19 @@
       }
 
       function showAlert(message, type) {
+        try {
+          if (window.Swal) {
+            Swal.fire({
+              icon: type === "error" ? "error" : "success",
+              title: type === "error" ? "Error" : "Berhasil",
+              text: message,
+            });
+            return;
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+
         const errorAlert = document.getElementById("alert-error");
         const successAlert = document.getElementById("alert-success");
 
