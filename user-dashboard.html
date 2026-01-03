@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Dashboard - Siswa</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="assets/css/themify-icons.css" />
+    <link rel="stylesheet" href="assets/css/animate.css" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <link rel="stylesheet" href="assets/css/admin-dashboard.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      /* New modern card style */
+      .user-dashboard {
+        padding: 32px 20px;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 18px;
+        align-items: start;
+      }
+      .course-card {
+        background: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+        display: flex;
+        flex-direction: column;
+        min-height: 220px;
+      }
+      .course-thumb {
+        width: 100%;
+        height: 140px;
+        object-fit: cover;
+        background: linear-gradient(90deg, #eef2ff, #fff);
+      }
+      .course-body {
+        padding: 12px 14px 14px 14px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .course-card h4 {
+        font-size: 16px;
+        margin: 0 0 6px;
+        color: #111827;
+      }
+      .course-meta {
+        color: #6b7280;
+        font-size: 13px;
+        margin-bottom: 10px;
+        line-height: 1.3;
+      }
+      .card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: auto;
+      }
+      .btn-enroll,
+      .btn-continue {
+        display: inline-block;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        border: 0;
+        cursor: pointer;
+      }
+      .btn-enroll {
+        background: #06b6d4;
+        color: #fff;
+      }
+      .btn-continue {
+        background: #7c3aed;
+        color: #fff;
+      }
+      .btn-light {
+        background: #f3f4f6;
+        color: #111827;
+      }
+      .progress-wrap {
+        width: 100%;
+        height: 8px;
+        background: #f3f4f6;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #7c3aed, #06b6d4);
+        width: 0%;
+      }
+    </style>
+  </head>
+  <body class="admin-body">
+    <div class="admin-container">
+      <!-- Sidebar -->
+      <aside class="admin-sidebar">
+        <div class="logo">
+          <img
+            src="assets/img/logo.png"
+            href="index.html"
+            alt="Edumark Logo"
+            class="logo-img"
+          />
+        </div>
+        <nav class="admin-menu">
+          <div
+            class="menu-item active"
+            onclick="showSection('student-overview', this)"
+          >
+            <i class="fa fa-dashboard"></i>
+            <span>Dashboard</span>
+          </div>
+          <div class="menu-item" onclick="showSection('student-courses', this)">
+            <i class="fa fa-book"></i>
+            <span>Courses</span>
+          </div>
+          <div class="menu-item" onclick="showSection('student-profile', this)">
+            <i class="fa fa-user"></i>
+            <span>Profile</span>
+          </div>
+          <div class="menu-item" onclick="logout()">
+            <i class="fa fa-sign-out"></i>
+            <span>Keluar</span>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Main -->
+      <div class="admin-main">
+        <div class="admin-topbar">
+          <h2 id="page-title">Dashboard Saya</h2>
+          <div class="admin-topbar-right">
+            <div class="user-profile">
+              <div
+                class="user-profile"
+                id="user-avatar"
+                style="
+                  background: #667eea;
+                  width: 40px;
+                  height: 40px;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  color: #fff;
+                  font-weight: bold;
+                "
+              >
+                US
+              </div>
+              <div class="user-name" id="user-name">Siswa</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-content">
+          <section class="dashboard-section active" id="student-overview">
+            <div id="dashboard-progress" class="cards" style="margin-top:16px"></div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 18px;
+              "
+            >
+              <div>
+                <h3 style="margin: 0">Dashboard Saya</h3>
+                <p style="color: #6b7280; margin: 4px 0 0">
+                  Ringkasan singkat aktivitas Anda.
+                </p>
+              </div>
+            </div>
+            <div>
+              <p style="color: #6b7280">
+                Gunakan menu di samping untuk melihat Courses atau Profile.
+              </p>
+            </div>
+          </section>
+
+          <!-- Courses Section (separate) -->
+          <section class="dashboard-section" id="student-courses">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+              "
+            >
+              <h4 style="margin: 0">Enrolled Courses</h4>
+            </div>
+            <div
+              id="enrolled-container"
+              class="cards"
+              style="margin-top: 10px"
+            ></div>
+          </section>
+
+          <!-- Profile Section -->
+          <section class="dashboard-section" id="student-profile">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+              "
+            >
+              <h4 style="margin: 0">Profil Saya</h4>
+            </div>
+            <div class="table-container" style="max-width: 700px">
+              <label>Nama Lengkap</label>
+              <input id="profile-name" class="form-control" />
+
+              <label style="margin-top: 10px">Email</label>
+              <input id="profile-email" class="form-control" />
+
+              <label style="margin-top: 10px">Username</label>
+              <input id="profile-username" class="form-control" />
+
+              <div style="margin-top: 12px; display: flex; gap: 8px">
+                <button id="save-profile" class="btn-admin btn-primary-admin">
+                  Simpan
+                </button>
+                <button id="change-pass" class="btn-admin btn-secondary-admin">
+                  Ganti Password
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import {
+        getCourseDetail,
+        getProfile,
+      } from "./assets/js/api/instructor.js";
+      import { logoutUser } from "./assets/js/api/auth.js";
+      import { getUserEnrollments, getCourseModules, getQuizResult, getCourseQuizResults } from "./assets/js/api/student.js";
+
+      // expose logout for sidebar (clear client token and redirect)
+      window.logout = async function () {
+        try {
+          await logoutUser();
+        } catch (e) {
+          // ignore network errors
+        }
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "index.html";
+      };
+
+      const enrolledContainer = document.getElementById("enrolled-container");
+
+      let enrollments = [];
+      let currentProfile = {};
+
+      async function init() {
+        try {
+          const profile = await getProfile();
+          currentProfile = profile || {};
+          const name =
+            profile.full_name || profile.fullName || profile.name || "Siswa";
+          document.getElementById("user-name").textContent = name;
+          try {
+            const initials =
+              (name || "")
+                .split(" ")
+                .map((n) => n[0] || "")
+                .join("")
+                .toUpperCase()
+                .slice(0, 2) || "US";
+            const avatarEl = document.getElementById("user-avatar");
+            if (avatarEl) avatarEl.textContent = initials;
+          } catch (e) {}
+        } catch (e) {
+          // ignore
+        }
+
+        await loadData();
+      }
+
+      // Switch visible section and update sidebar active state
+      function showSection(sectionId, menuEl) {
+        // hide all sections
+        document
+          .querySelectorAll(".dashboard-section")
+          .forEach((s) => s.classList.remove("active"));
+        const target = document.getElementById(sectionId);
+        if (target) target.classList.add("active");
+
+        // update menu active
+        document
+          .querySelectorAll(".admin-menu .menu-item")
+          .forEach((mi) => mi.classList.remove("active"));
+        if (menuEl && menuEl.classList) {
+          menuEl.classList.add("active");
+        } else {
+          // try to find menu by matching onclick attribute
+          document.querySelectorAll(".admin-menu .menu-item").forEach((mi) => {
+            const onclick = mi.getAttribute("onclick") || "";
+            if (onclick.includes(sectionId)) mi.classList.add("active");
+          });
+        }
+
+        // if opening profile, populate fields
+        if (sectionId === "student-profile") {
+          try {
+            const p = currentProfile || {};
+            document.getElementById("profile-name").value =
+              p.full_name || p.fullName || p.name || "";
+            document.getElementById("profile-email").value =
+              p.email || p.Email || "";
+            document.getElementById("profile-username").value =
+              p.username || p.userName || p.username || "";
+          } catch (e) {}
+        }
+      }
+
+      window.showSection = showSection;
+
+      async function loadData() {
+        try {
+          enrollments = await getUserEnrollments();
+          console.log("Enrollments data:", enrollments);
+        } catch (e) {
+          console.error("Gagal memuat enrollments", e);
+          enrollments = [];
+        }
+
+        renderEnrollments();
+        renderDashboardProgress();
+      }
+
+      function renderEnrollments() {
+        enrolledContainer.innerHTML = "";
+        if (!enrollments || enrollments.length === 0) {
+          enrolledContainer.innerHTML =
+            '<div style="color:#6b7280">Belum ada enrollments.</div>';
+          return;
+        }
+
+        // Array of available course images
+        const availableImages = [
+          "1.png",
+          "2.png",
+          "3.png",
+          "4.png",
+          "5.png",
+          "6.png",
+        ];
+
+        // map enrollment to course info where possible
+        enrollments.forEach((en) => {
+          console.log("Processing enrollment:", en);
+          // enrollment may contain course object or be course object directly
+          const course = en.course || en.courseData || en;
+          let id =
+            (course && (course.id || course.ID)) ||
+            en.course_id ||
+            en.courseId ||
+            en.id;
+          let title =
+            (course && (course.course_title || course.Course_Title)) || en.course_title || "Course";
+          let desc =
+            (course && (course.description || course.Description)) || "";
+          let thumb =
+            (course && (course.thumbnail || course.cover || course.image)) ||
+            "";
+          let progress =
+            en.progress || en.progress_pct || en.progress_percent || "";
+
+          console.log("Parsed - id:", id, "title:", title, "desc:", desc);
+
+          // If no thumbnail, use random from available images
+          if (!thumb) {
+            const randomIndex = Math.floor(
+              Math.random() * availableImages.length
+            );
+            thumb = `./assets/img/courses/${availableImages[randomIndex]}`;
+          }
+
+          const card = document.createElement("div");
+          card.className = "course-card";
+          card.innerHTML = `
+            ${
+              thumb
+                ? `<img src="${thumb}" alt="${title}" class="course-thumb"/>`
+                : `<div class="course-thumb"></div>`
+            }
+            <div class="course-body">
+              <h4>${title}</h4>
+              <div class="course-meta">${
+                desc
+                  ? desc.slice(0, 120) + (desc.length > 120 ? "..." : "")
+                  : progress
+                  ? `Progress: ${progress}`
+                  : ""
+              }</div>
+
+              ${
+                progress
+                  ? `<div class="progress-wrap"><div class="progress-bar" style="width:${
+                      parseInt(String(progress).replace("%", "")) || 0
+                    }%"></div></div>`
+                  : ""
+              }
+
+              <div class="card-footer">
+                <div style="font-size:13px;color:#6b7280">ID: #${id}</div>
+                <div>
+                  <button class="btn-continue" data-id="${id}">Lanjutkan</button>
+                </div>
+              </div>
+            </div>
+          `;
+
+          card.querySelector(".btn-continue").addEventListener("click", () => {
+            const targetId = id;
+            window.location.href = `/pages/course_details.html?id=${targetId}`;
+          });
+
+          enrolledContainer.appendChild(card);
+        });
+      }
+      async function calculateCourseProgress(courseId) {
+        try {
+          // 1. ambil semua modul course
+          const moduleRes = await getCourseModules(courseId);
+          const modules = moduleRes.modules || [];
+
+          if (modules.length === 0) {
+            return {
+              progress: 0,
+              completed: false,
+            };
+          }
+
+          // 2. ambil quiz result user untuk course
+          const results = await getCourseQuizResults(courseId);
+
+          // ambil module_id yang PASSED
+          const passedModuleIds = new Set(
+            (results || [])
+              .filter((r) => r.passed === true)
+              .map((r) => r.module_id)
+          );
+
+          const totalModules = modules.length;
+          const passedModules = passedModuleIds.size;
+
+          const progress = Math.round(
+            (passedModules / totalModules) * 100
+          );
+
+          return {
+            progress,
+            completed: passedModules === totalModules,
+            passedModules,
+            totalModules,
+          };
+        } catch (err) {
+          console.error("Progress error:", err);
+          return {
+            progress: 0,
+            completed: false,
+          };
+        }
+      }
+
+
+      async function renderDashboardProgress() {
+        const container = document.getElementById("dashboard-progress");
+        container.innerHTML = "";
+
+        if (!enrollments || enrollments.length === 0) {
+          container.innerHTML =
+            '<div style="color:#6b7280">Belum ada course.</div>';
+          return;
+        }
+
+        for (const en of enrollments) {
+          const course = en.course || en;
+          const courseId = course.id || course.ID || en.course_id;
+          const title =
+            course.title ||
+            course.course_title ||
+            "Course";
+
+          const result = await calculateCourseProgress(courseId);
+
+          const statusLabel = result.completed
+            ? `<span style="color:#16a34a;font-weight:600">✓ Complete</span>`
+            : `<span style="color:#f59e0b;font-weight:600">In Progress</span>`;
+
+          const card = document.createElement("div");
+          card.className = "course-card";
+          card.innerHTML = `
+            <div class="course-body">
+              <h4>${title}</h4>
+              <div class="course-meta">
+                ${statusLabel}<br>
+                ${result.passedModules}/${result.totalModules} modul selesai
+              </div>
+
+              <div class="progress-wrap">
+                <div class="progress-bar" style="width:${result.progress}%"></div>
+              </div>
+
+              <div style="margin-top:8px;font-size:13px;color:#6b7280">
+                ${result.progress}% selesai
+              </div>
+            </div>
+          `;
+
+          container.appendChild(card);
+        }
+      }
+
+
+
+
+      document.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>

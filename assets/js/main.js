@@ -1,5 +1,6 @@
 import { Header } from "./components/public/header.js";
 import { Footer } from "./components/public/footer.js";
+import { logoutUser } from "./api/auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const headerEl = document.querySelector("#header");
@@ -7,6 +8,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (headerEl) headerEl.innerHTML = Header();
   if (footerEl) footerEl.innerHTML = Footer();
+
+  // Define logout function globally
+  window.logout = async function () {
+    try {
+      await logoutUser();
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+    // Clear localStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    // Reload page to update header
+    window.location.reload();
+  };
 
   const currentPath = window.location.pathname;
   const currentPage =

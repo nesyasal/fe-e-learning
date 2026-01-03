@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html class="no-js" lang="zxx">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>Module - Edumark</title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- <link rel="manifest" href="site.webmanifest"> -->
+    <link
+      rel="shortcut icon"
+      type="image/x-icon"
+      href="../assets/img/favicon.png"
+    />
+    <!-- Place favicon.ico in the root directory -->
+
+    <!-- CSS here -->
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../assets/css/owl.carousel.min.css" />
+    <link rel="stylesheet" href="../assets/css/magnific-popup.css" />
+    <link rel="stylesheet" href="../assets/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="../assets/css/themify-icons.css" />
+    <link rel="stylesheet" href="../assets/css/nice-select.css" />
+    <link rel="stylesheet" href="../assets/css/flaticon.css" />
+    <link rel="stylesheet" href="../assets/css/gijgo.css" />
+    <link rel="stylesheet" href="../assets/css/animate.css" />
+    <link rel="stylesheet" href="../assets/css/slicknav.css" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <!-- <link rel="stylesheet" href="../assets/css/responsive.css"> -->
+  </head>
+
+  <body>
+    <!--[if lte IE 9]>
+      <p class="browserupgrade">
+        You are using an <strong>outdated</strong> browser. Please
+        <a href="https://browsehappy.com/">upgrade your browser</a> to improve
+        your experience and security.
+      </p>
+    <![endif]-->
+
+    <!-- header-start -->
+    <div id="header"></div>
+    <!-- header-end -->
+
+    <!-- Module Content -->
+    <div class="courses_details_info">
+      <div class="container">
+        <div class="row">
+          <div class="col-xl-8 col-lg-8">
+            <div class="single_courses">
+              <h3 id="module-title">Module Title</h3>
+              <div id="module-content">
+                <p>Loading module content...</p>
+              </div>
+              <div id="quiz-section" style="margin-top: 30px; display: none">
+                <h4>Quiz</h4>
+                <div id="quiz-container"></div>
+                <button
+                  id="submit-quiz"
+                  class="boxed_btn_orange"
+                  style="display: none"
+                >
+                  Submit Quiz
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-4 col-lg-4">
+            <div class="sidebar">
+              <h4>Module Navigation</h4>
+              <ul id="module-list"></ul>
+              <button
+                onclick="window.history.back()"
+                class="boxed_btn_green"
+                style="margin-top: 20px"
+              >
+                Back to Course
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- footer-start -->
+    <div id="footer"></div>
+    <!-- footer-end -->
+
+    <!-- JS here -->
+    <script src="../assets/js/vendor/modernizr-3.5.0.min.js"></script>
+    <script src="../assets/js/vendor/jquery-1.12.4.min.js"></script>
+    <script src="../assets/js/popper.min.js"></script>
+    <script src="../assets/js/bootstrap.min.js"></script>
+    <script src="../assets/js/owl.carousel.min.js"></script>
+    <script src="../assets/js/isotope.pkgd.min.js"></script>
+    <script src="../assets/js/ajax-form.js"></script>
+    <script src="../assets/js/waypoints.min.js"></script>
+    <script src="../assets/js/jquery.counterup.min.js"></script>
+    <script src="../assets/js/imagesloaded.pkgd.min.js"></script>
+    <script src="../assets/js/scrollIt.js"></script>
+    <script src="../assets/js/jquery.scrollUp.min.js"></script>
+    <script src="../assets/js/wow.min.js"></script>
+    <script src="../assets/js/nice-select.min.js"></script>
+    <script src="../assets/js/jquery.slicknav.min.js"></script>
+    <script src="../assets/js/jquery.magnific-popup.min.js"></script>
+    <script src="../assets/js/plugins.js"></script>
+    <script src="../assets/js/gijgo.min.js"></script>
+
+    <!--contact js-->
+    <script src="../assets/js/contact.js"></script>
+    <script src="../assets/js/jquery.ajaxchimp.min.js"></script>
+    <script src="../assets/js/jquery.form.js"></script>
+    <script src="../assets/js/jquery.validate.min.js"></script>
+    <script src="../assets/js/mail-script.js"></script>
+    <script type="module" src="../assets/js/main.js"></script>
+
+    <script type="module">
+  import { Header } from "../assets/js/components/public/header.js";
+  import { Footer } from "../assets/js/components/public/footer.js";
+  import {
+    getCourseModules,
+    getModuleQuizzes,
+    submitModuleQuiz,
+    getModulePDFUrl,
+  } from "../assets/js/api/student.js";
+
+  document.addEventListener("DOMContentLoaded", init);
+
+  async function init() {
+    document.getElementById("header").innerHTML = Header();
+    document.getElementById("footer").innerHTML = Footer();
+
+    const params = new URLSearchParams(window.location.search);
+    const courseId = params.get("courseId");
+    const moduleId = params.get("moduleId");
+
+    if (!courseId || !moduleId) {
+      document.getElementById("module-content").innerHTML =
+        "<p>Invalid module.</p>";
+      return;
+    }
+
+    await loadModule(courseId, moduleId);
+  }
+
+  /* ================= MODULE ================= */
+
+  async function loadModule(courseId, moduleId) {
+    try {
+      const data = await getCourseModules(courseId);
+      const modules = data.modules || [];
+      const module = modules.find((m) => String(m.id) === String(moduleId));
+
+      if (!module) {
+        document.getElementById("module-content").innerHTML =
+          "<p>Module not found.</p>";
+        return;
+      }
+
+      document.getElementById("module-title").textContent =
+        module.title || "Module";
+
+      await loadPDF(courseId, moduleId);
+      await loadQuiz(courseId, moduleId);
+    } catch (err) {
+      console.error(err);
+      document.getElementById("module-content").innerHTML =
+        "<p>Failed to load module.</p>";
+    }
+  }
+
+  /* ================= PDF (STUDENT FIX) ================= */
+
+  async function loadPDF(courseId, moduleId) {
+    try {
+      const blob = await getModulePDFUrl(courseId, moduleId);
+      const url = URL.createObjectURL(blob);
+
+      document.getElementById("module-content").innerHTML = `
+        <iframe 
+          src="${url}" 
+          width="100%" 
+          height="600px" 
+          style="border:1px solid #e5e7eb">
+        </iframe>
+      `;
+    } catch (err) {
+      console.error(err);
+      document.getElementById("module-content").innerHTML =
+        "<p>Failed to load PDF content.</p>";
+    }
+  }
+
+  /* ================= QUIZ ================= */
+
+  async function loadQuiz(courseId, moduleId) {
+    const response = await getModuleQuizzes(courseId, moduleId);
+
+    const quizzes = Array.isArray(response)
+      ? response
+      : response.quizzes || [];
+
+    console.log("FINAL QUIZZES:", quizzes);
+
+    if (quizzes.length === 0) return;
+
+    const container = document.getElementById("quiz-container");
+    container.innerHTML = "";
+
+    quizzes.forEach((quiz, index) => {
+      // 🔥 NORMALISASI ID (INI PENTING)
+      const quizId = quiz.id ?? quiz.ID;
+
+      let options = [];
+      if (Array.isArray(quiz.options)) {
+        options = quiz.options;
+      } else {
+        options = JSON.parse(quiz.options);
+      }
+
+      container.innerHTML += `
+        <div style="margin-bottom:20px">
+          <h5>${index + 1}. ${quiz.question}</h5>
+          ${options
+            .map((opt, optIndex) => {
+              const inputId = `quiz-${quizId}-${optIndex}`;
+              return `
+                <div>
+                  <input
+                    type="radio"
+                    id="${inputId}"
+                    name="quiz-${quizId}"
+                    value="${opt}"
+                  />
+                  <label for="${inputId}">${opt}</label>
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      `;
+    });
+
+    const btn = document.getElementById("submit-quiz");
+    btn.style.display = "inline-block";
+    btn.onclick = () => submitQuiz(courseId, moduleId, quizzes);
+
+    document.getElementById("quiz-section").style.display = "block";
+  }
+
+
+
+
+  /* ================= SUBMIT QUIZ ================= */
+
+  async function submitQuiz(courseId, moduleId, quizzes) {
+    const answers = quizzes.map((q) => {
+      const quizId = q.id ?? q.ID; // 🔥 WAJIB
+
+      const selected = document.querySelector(
+        `input[name="quiz-${quizId}"]:checked`
+      );
+
+      return {
+        quiz_id: quizId,
+        answer: selected ? selected.value : null,
+      };
+    });
+
+    console.log("SUBMIT PAYLOAD:", answers); // WAJIB ADA
+
+    if (answers.some((a) => !a.answer)) {
+      alert("Please answer all questions");
+      return;
+    }
+
+    const result = await submitModuleQuiz(courseId, moduleId, answers);
+
+    document.getElementById("quiz-section").innerHTML = `
+      <h4>Quiz Result</h4>
+      <p><strong>Score:</strong> ${result.score}</p>
+      <p><strong>Status:</strong> ${result.passed ? "PASSED" : "FAILED"}</p>
+      <p>Total Questions: ${result.total_quiz}</p>
+      <p>Correct: ${result.correct}</p>
+      <p>Wrong: ${result.wrong}</p>
+    `;
+  }
+
+</script>
+
+  </body>
+</html>
