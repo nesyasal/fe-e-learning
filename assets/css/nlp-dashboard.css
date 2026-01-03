@@ -1,0 +1,61 @@
+/* PAGE WRAPPER */
+.nlp-page {
+  background: radial-gradient(circle at top, #0f172a, #020617);
+  min-height: calc(100vh - 80px); /* header height */
+  padding: 40px 24px;
+}
+
+/* GRID */
+.nlp-container {
+  max-width: 1280px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+}
+
+/* CARD */
+.nlp-card {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 20px;
+  color: #e5e7eb;
+}
+
+/* BUTTONS */
+.btn-primary {
+  background: #2563eb;
+  border: none;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+
+.btn-secondary {
+  background: #1e293b;
+  color: #e5e7eb;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+
+/* TABLE */
+.history-table {
+  width: 100%;
+  font-size: 13px;
+  border-collapse: collapse;
+}
+
+.history-table th,
+.history-table td {
+  padding: 10px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.label.danger {
+  background: #7f1d1d;
+  color: #fecaca;
+  padding: 4px 8px;
+  border-radius: 999px;
+}

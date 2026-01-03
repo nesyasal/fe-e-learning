@@ -141,3 +141,23 @@ export async function getCourseQuizResults(courseId) {
     method: "GET",
   });
 }
+
+export async function updateUserProfile(data) {
+  return apiFetch("/me/profile", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function changeUserPassword(data) {
+  return apiFetch("/me/profile/password", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteUserAccount() {
+  return apiFetch("/me/profile", {
+    method: "DELETE",
+  });
+}
