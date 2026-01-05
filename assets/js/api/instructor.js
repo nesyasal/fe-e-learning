@@ -73,7 +73,7 @@ export async function addModule(courseId, formData) {
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   const response = await fetch(
-    `http://127.0.0.1:8080/api/instructor/courses/${courseId}/modules`,
+    `https://be-elearning-production.up.railway.app/api/instructor/courses/${courseId}/modules`,
     {
       method: "POST",
       headers,
@@ -100,7 +100,7 @@ export async function editModule(courseId, moduleId, formData) {
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   const response = await fetch(
-    `http://127.0.0.1:8080/api/instructor/courses/${courseId}/modules/${moduleId}`,
+    `https://be-elearning-production.up.railway.app/api/instructor/courses/${courseId}/modules/${moduleId}`,
     {
       method: "PUT",
       headers,
@@ -134,7 +134,7 @@ export async function getModulePDFUrl(courseId, moduleId) {
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   const response = await fetch(
-    `http://127.0.0.1:8080/api/instructor/courses/${courseId}/modules/${moduleId}/pdf`,
+    `https://be-elearning-production.up.railway.app/api/instructor/courses/${courseId}/modules/${moduleId}/pdf`,
     { method: "GET", headers }
   );
 

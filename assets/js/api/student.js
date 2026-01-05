@@ -109,7 +109,7 @@ export async function getModulePDFUrl(courseId, moduleId) {
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   const response = await fetch(
-    `http://127.0.0.1:8080/api/me/courses/${courseId}/modules/${moduleId}/pdf`,
+    `https://be-elearning-production.up.railway.app/api/me/courses/${courseId}/modules/${moduleId}/pdf`,
     { method: "GET", headers }
   );
 
