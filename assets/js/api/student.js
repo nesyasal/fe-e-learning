@@ -42,7 +42,7 @@ export async function getUserEnrollments() {
 
 // POST /api/me/course/:id/enroll
 export async function enrollCourse(courseId) {
-  return await apiFetch(`/me/course/${courseId}/enroll`, {
+  return await apiFetch(`/me/courses/${courseId}/enroll`, {
     method: "POST",
   });
 }

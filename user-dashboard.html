@@ -181,9 +181,11 @@
                 Gunakan menu di samping untuk melihat Courses atau Profile.
               </p>
             </div>
-            <div id="dashboard-progress" class="cards" style="margin-top:16px"></div>
-            
-            
+            <div
+              id="dashboard-progress"
+              class="cards"
+              style="margin-top: 16px"
+            ></div>
           </section>
 
           <!-- Courses Section (separate) -->
@@ -284,8 +286,15 @@
         getProfile,
       } from "./assets/js/api/instructor.js";
       import { logoutUser } from "./assets/js/api/auth.js";
-      import { getUserEnrollments, getCourseModules, getQuizResult, getCourseQuizResults, updateUserProfile, changeUserPassword, deleteUserAccount } from "./assets/js/api/student.js";
-      import { logoutUser } from "./assets/js/api/auth.js";
+      import {
+        getUserEnrollments,
+        getCourseModules,
+        getQuizResult,
+        getCourseQuizResults,
+        updateUserProfile,
+        changeUserPassword,
+        deleteUserAccount,
+      } from "./assets/js/api/student.js";
 
       const enrolledContainer = document.getElementById("enrolled-container");
 
@@ -349,16 +358,13 @@
             document.getElementById("set-name").value =
               p.full_name || p.fullName || p.name || "";
 
-            document.getElementById("set-email").value =
-              p.email || "";
+            document.getElementById("set-email").value = p.email || "";
 
-            document.getElementById("set-username").value =
-              p.username || "";
+            document.getElementById("set-username").value = p.username || "";
           } catch (e) {
             console.error("Failed to populate profile", e);
           }
         }
-
       }
 
       window.showSection = showSection;
@@ -398,8 +404,6 @@
           alert(message);
         }
       }
-      
-
 
       document
         .getElementById("settings-form")
@@ -505,7 +509,9 @@
             en.courseId ||
             en.id;
           let title =
-            (course && (course.course_title || course.Course_Title)) || en.course_title || "Course";
+            (course && (course.course_title || course.Course_Title)) ||
+            en.course_title ||
+            "Course";
           let desc =
             (course && (course.description || course.Description)) || "";
           let thumb =
@@ -622,8 +628,6 @@
         }
       }
 
-
-
       async function renderDashboardProgress() {
         const container = document.getElementById("dashboard-progress");
         container.innerHTML = "";
@@ -637,10 +641,7 @@
         for (const en of enrollments) {
           const course = en.course || en;
           const courseId = course.id || course.ID || en.course_id;
-          const title =
-            course.title ||
-            course.course_title ||
-            "Course";
+          const title = course.title || course.course_title || "Course";
 
           const result = await calculateCourseProgress(courseId);
 
