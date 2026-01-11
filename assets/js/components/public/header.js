@@ -22,6 +22,12 @@ export function Header() {
   console.log("User data:", user);
   console.log("User name:", userName);
 
+  // Check user role
+  const userRole = user?.role || null;
+  const isStudent = userRole === "student" || userRole === "user";
+  const isInstructor = userRole === "instructor";
+  const isAdmin = userRole === "admin";
+
   /* =====================
      NAVIGATION MENU
   ====================== */
@@ -34,6 +40,11 @@ export function Header() {
         </ul>
       </li>`
     : `<li><a href="#test-form" class="login popup-with-form">Login</a></li>`;
+
+  // Reflection menu only for students/users
+  const reflectionMenu = isStudent
+    ? `<li><a href="${basePath}pages/nlp_dashboard.html">Reflection</a></li>`
+    : "";
 
   /* =====================
      AUTH SECTION (RIGHT)
@@ -63,6 +74,7 @@ export function Header() {
                 <ul id="navigation">
                   <li><a href="${basePath}index.html">Home</a></li>
                   <li><a href="${basePath}pages/courses.html">Courses</a></li>
+                  ${reflectionMenu}
 
                   <li>
                     <a href="#">Pages <i class="ti-angle-down"></i></a>
