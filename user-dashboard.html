@@ -114,7 +114,7 @@
             onclick="showSection('student-overview', this)"
           >
             <i class="fa fa-dashboard"></i>
-            <span>Dashboard</span>
+            <span>Activity</span>
           </div>
           <div class="menu-item" onclick="showSection('student-courses', this)">
             <i class="fa fa-book"></i>
@@ -124,9 +124,12 @@
             <i class="fa fa-user"></i>
             <span>Profile</span>
           </div>
+          <div class="menu-item" onclick="HTMLModElement()">
+            <span>Back</span>
+          </div>
           <div class="menu-item" onclick="logout()">
             <i class="fa fa-sign-out"></i>
-            <span>Keluar</span>
+            <span>Log Out</span>
           </div>
         </nav>
       </aside>
@@ -134,7 +137,7 @@
       <!-- Main -->
       <div class="admin-main">
         <div class="admin-topbar">
-          <h2 id="page-title">Dashboard Saya</h2>
+          <h2 id="page-title">My Activity</h2>
           <div class="admin-topbar-right">
             <div class="user-profile">
               <div
@@ -170,16 +173,11 @@
               "
             >
               <div>
-                <h3 style="margin: 0">Dashboard Saya</h3>
+                <h3 style="margin: 0">Hello, </h3>
                 <p style="color: #6b7280; margin: 4px 0 0">
-                  Ringkasan singkat aktivitas Anda.
+                  A brief summary of your activities.
                 </p>
               </div>
-            </div>
-            <div>
-              <p style="color: #6b7280">
-                Gunakan menu di samping untuk melihat Courses atau Profile.
-              </p>
             </div>
             <div
               id="dashboard-progress"

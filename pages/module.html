@@ -28,6 +28,345 @@
     <link rel="stylesheet" href="../assets/css/slicknav.css" />
     <link rel="stylesheet" href="../assets/css/style.css" />
     <!-- <link rel="stylesheet" href="../assets/css/responsive.css"> -->
+
+    <style>
+      /* Module Page Styling */
+      .module-header-banner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 60px 0;
+        color: white;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .module-header-banner::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,144C960,149,1056,139,1152,133.3C1248,128,1344,128,1392,128L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+        background-size: cover;
+        opacity: 0.5;
+      }
+
+      .module-header-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      .module-header-content h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+      }
+
+      .module-header-content p {
+        font-size: 1.1rem;
+        margin-bottom: 0;
+        opacity: 0.95;
+      }
+
+      .module-progress-bar {
+        margin-top: 20px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 10px;
+        padding: 15px;
+        backdrop-filter: blur(10px);
+      }
+
+      .module-progress-bar p {
+        font-size: 0.95rem;
+        margin-bottom: 10px;
+      }
+
+      .progress {
+        height: 8px;
+        background: rgba(255,255,255,0.3);
+        border-radius: 10px;
+      }
+
+      .progress-bar {
+        background: #fff !important;
+        border-radius: 10px;
+      }
+
+      /* Content Section */
+      .single_courses {
+        background: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+      }
+
+      .single_courses h3 {
+        color: #333;
+        font-size: 2rem;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 3px solid #667eea;
+      }
+
+      #module-content {
+        line-height: 1.8;
+        color: #555;
+      }
+
+      #module-content iframe {
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+
+      /* Quiz Section */
+      #quiz-section {
+        background: #f8f9fa;
+        padding: 0;
+        border-radius: 12px;
+        border-left: 5px solid #667eea;
+        margin-top: 30px;
+      }
+
+      #quiz-section.collapsed #quiz-container,
+      #quiz-section.collapsed #submit-quiz {
+        display: none !important;
+      }
+
+      #quiz-section.collapsed {
+        padding: 0;
+      }
+
+      #quiz-section:not(.collapsed) {
+        padding: 30px;
+      }
+
+      #quiz-section h4 {
+        color: #333;
+        font-size: 1.5rem;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      #quiz-section h4::before {
+        content: '📝';
+        font-size: 1.8rem;
+      }
+
+      .quiz-question {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border-left: 4px solid #667eea;
+      }
+
+      .quiz-question h5 {
+        color: #333;
+        margin-bottom: 15px;
+        font-weight: 600;
+      }
+
+      .quiz-option {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 2px solid #e9ecef;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .quiz-option:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+      }
+
+      .quiz-option input[type="radio"] {
+        margin-right: 12px;
+        cursor: pointer;
+        width: 18px;
+        height: 18px;
+      }
+
+      .quiz-option label {
+        margin: 0;
+        cursor: pointer;
+        flex: 1;
+      }
+
+      .quiz-result {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        border-left: 5px solid #28a745;
+      }
+
+      .quiz-result h4 {
+        color: #28a745;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .quiz-result h4::before {
+        content: '✓';
+        font-size: 2rem;
+      }
+
+      .quiz-result-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #e9ecef;
+        color: #555;
+      }
+
+      .quiz-result-item:last-child {
+        border-bottom: none;
+      }
+
+      .quiz-result-item strong {
+        color: #333;
+      }
+
+      .side-back-button {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.side-back-button .boxed_btn_green {
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* RESPONSIVE */
+@media (max-width: 968px) {
+  .side-back-button {
+    margin-bottom: 30px;
+  }
+
+  .side-back-button .boxed_btn_green {
+    width: 100%;
+  }
+}
+
+      .back-button-container .boxed_btn_green,
+      .inline-controls .boxed_btn_green {
+        width: auto;
+        padding: 5px 10px;
+        font-size: 0.9rem;
+      }
+
+      /* Buttons */
+      .boxed_btn_orange,
+      .boxed_btn_green {
+        padding: 12px 30px;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-block;
+        text-decoration: none;
+      }
+
+      .boxed_btn_orange {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        width: 100%;
+        margin-top: 20px;
+        padding: 12px 30px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .boxed_btn_orange:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+      }
+
+      .boxed_btn_orange.quiz-toggle {
+        margin-top: 0;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 30px;
+      }
+
+      .boxed_btn_orange.quiz-toggle::after {
+        content: '▼';
+        font-size: 0.8rem;
+        transition: transform 0.3s ease;
+      }
+
+      .boxed_btn_orange.quiz-toggle.active::after {
+        transform: rotate(180deg);
+      }
+
+      .boxed_btn_green {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        width: auto;
+        padding: 12px 25px;
+        margin-top: 0;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .boxed_btn_green:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+        text-decoration: none;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .module-header-banner {
+          padding: 40px 0;
+        }
+
+        .module-header-content h1 {
+          font-size: 1.8rem;
+        }
+
+        .single_courses {
+          padding: 25px;
+        }
+
+        #quiz-section {
+          padding: 20px;
+        }
+
+        .quiz-question {
+          padding: 15px;
+        }
+
+        .back-button-container {
+          flex-direction: column;
+        }
+
+        .back-button-container .boxed_btn_green {
+          width: 100%;
+        }
+      }
+    </style>
   </head>
 
   <body>
@@ -40,48 +379,81 @@
     <![endif]-->
 
     <!-- header-start -->
-    <div id="header"></div>
+    <div id="header" style="display: none;"></div>
     <!-- header-end -->
 
-    <!-- Module Content -->
-    <div class="courses_details_info">
+    <!-- Module Header Banner -->
+    <div class="module-header-banner">
       <div class="container">
         <div class="row">
-          <div class="col-xl-8 col-lg-8">
-            <div class="single_courses">
-              <h3 id="module-title">Module Title</h3>
-              <div id="module-content">
-                <p>Loading module content...</p>
+          <div class="col-xl-12">
+            <div class="module-header-content">
+              <h1 id="banner-title">Loading Module...</h1>
+              <p id="banner-desc">Complete this module to continue learning</p>
+              <div class="module-progress-bar">
+                <p><strong>Progress:</strong> <span id="progress-text">0/0</span></p>
+                <div class="progress">
+                  <div class="progress-bar" id="progress-bar" role="progressbar" style="width: 0%"></div>
+                </div>
               </div>
-              <div id="quiz-section" style="margin-top: 30px; display: none">
-                <h4>Quiz</h4>
-                <div id="quiz-container"></div>
-                <button
-                  id="submit-quiz"
-                  class="boxed_btn_orange"
-                  style="display: none"
-                >
-                  Submit Quiz
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="col-xl-4 col-lg-4">
-            <div class="sidebar">
-              <h4>Module Navigation</h4>
-              <ul id="module-list"></ul>
-              <button
-                onclick="window.history.back()"
-                class="boxed_btn_green"
-                style="margin-top: 20px"
-              >
-                Back to Course
-              </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Module Content -->
+    <div class="container" style="margin-bottom: 50px; margin-top: -20px;">
+  <div class="row align-items-start">
+
+    <!-- BACK BUTTON (KIRI) -->
+    <div class="col-lg-1 col-md-2 col-sm-12">
+      <div class="side-back-button">
+        <button onclick="window.history.back()" class="boxed_btn_green">
+          ← Back
+        </button>
+      </div>
+    </div>
+
+    <!-- MODULE CONTENT (KANAN) -->
+    <div class="col-lg-11 col-md-10 col-sm-12">
+      <div class="single_courses">
+
+        <h3 id="module-title">Module Title</h3>
+
+        <div id="module-content">
+          <p style="text-align: center; padding: 40px 0;">
+            <i class="fa fa-spinner fa-spin"></i> Loading module content...
+          </p>
+        </div>
+
+        <button
+          id="quiz-toggle-btn"
+          class="boxed_btn_orange quiz-toggle"
+          style="margin-top: 30px;"
+        >
+          <span>📋 View Quiz</span>
+        </button>
+
+        <div id="quiz-section" class="collapsed" style="display: none">
+          <h4> Quiz</h4>
+          <div id="quiz-container"></div>
+
+          <button
+            id="submit-quiz"
+            class="boxed_btn_orange"
+            style="display: none; margin-top: 30px;"
+          >
+            Submit Quiz
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
 
     <!-- footer-start -->
     <div id="footer"></div>
@@ -116,7 +488,6 @@
     <script type="module" src="../assets/js/main.js"></script>
 
     <script type="module">
-  import { Header } from "../assets/js/components/public/header.js";
   import { Footer } from "../assets/js/components/public/footer.js";
   import {
     getCourseModules,
@@ -128,7 +499,6 @@
   document.addEventListener("DOMContentLoaded", init);
 
   async function init() {
-    document.getElementById("header").innerHTML = Header();
     document.getElementById("footer").innerHTML = Footer();
 
     const params = new URLSearchParams(window.location.search);
@@ -142,6 +512,23 @@
     }
 
     await loadModule(courseId, moduleId);
+
+    // Setup quiz toggle button
+    const quizToggleBtn = document.getElementById("quiz-toggle-btn");
+    const quizSection = document.getElementById("quiz-section");
+
+    if (quizToggleBtn && quizSection) {
+      quizToggleBtn.addEventListener("click", () => {
+        quizSection.classList.toggle("collapsed");
+        quizToggleBtn.classList.toggle("active");
+        
+        if (!quizSection.classList.contains("collapsed")) {
+          quizSection.style.display = "block";
+        } else {
+          quizSection.style.display = "none";
+        }
+      });
+    }
   }
 
   /* ================= MODULE ================= */
@@ -158,8 +545,16 @@
         return;
       }
 
-      document.getElementById("module-title").textContent =
-        module.title || "Module";
+      const moduleTitle = module.title || "Module";
+      document.getElementById("module-title").textContent = moduleTitle;
+      document.getElementById("banner-title").textContent = moduleTitle;
+      document.getElementById("banner-desc").textContent = module.description || "Complete this module to continue learning";
+
+      // Update progress
+      const currentIndex = modules.findIndex((m) => String(m.id) === String(moduleId));
+      const progressPercent = ((currentIndex + 1) / modules.length) * 100;
+      document.getElementById("progress-bar").style.width = progressPercent + "%";
+      document.getElementById("progress-text").textContent = `${currentIndex + 1}/${modules.length}`;
 
       await loadPDF(courseId, moduleId);
       await loadQuiz(courseId, moduleId);
@@ -203,7 +598,13 @@
 
     console.log("FINAL QUIZZES:", quizzes);
 
-    if (quizzes.length === 0) return;
+    if (quizzes.length === 0) {
+      const quizToggleBtn = document.getElementById("quiz-toggle-btn");
+      if (quizToggleBtn) {
+        quizToggleBtn.style.display = "none";
+      }
+      return;
+    }
 
     const container = document.getElementById("quiz-container");
     container.innerHTML = "";
@@ -219,34 +620,32 @@
         options = JSON.parse(quiz.options);
       }
 
-      container.innerHTML += `
-        <div style="margin-bottom:20px">
-          <h5>${index + 1}. ${quiz.question}</h5>
-          ${options
-            .map((opt, optIndex) => {
-              const inputId = `quiz-${quizId}-${optIndex}`;
-              return `
-                <div>
-                  <input
-                    type="radio"
-                    id="${inputId}"
-                    name="quiz-${quizId}"
-                    value="${opt}"
-                  />
-                  <label for="${inputId}">${opt}</label>
-                </div>
-              `;
-            })
-            .join("")}
-        </div>
-      `;
+      const questionDiv = document.createElement("div");
+      questionDiv.className = "quiz-question";
+      questionDiv.innerHTML = `<h5>${index + 1}. ${quiz.question}</h5>`;
+
+      options.forEach((opt, optIndex) => {
+        const inputId = `quiz-${quizId}-${optIndex}`;
+        const optionDiv = document.createElement("div");
+        optionDiv.className = "quiz-option";
+        optionDiv.innerHTML = `
+          <input
+            type="radio"
+            id="${inputId}"
+            name="quiz-${quizId}"
+            value="${opt}"
+          />
+          <label for="${inputId}">${opt}</label>
+        `;
+        questionDiv.appendChild(optionDiv);
+      });
+
+      container.appendChild(questionDiv);
     });
 
     const btn = document.getElementById("submit-quiz");
     btn.style.display = "inline-block";
     btn.onclick = () => submitQuiz(courseId, moduleId, quizzes);
-
-    document.getElementById("quiz-section").style.display = "block";
   }
 
 
@@ -277,13 +676,33 @@
 
     const result = await submitModuleQuiz(courseId, moduleId, answers);
 
+    const statusClass = result.passed ? "#28a745" : "#dc3545";
+    const statusText = result.passed ? "PASSED ✓" : "FAILED ✗";
+    const statusEmoji = result.passed ? "🎉" : "📚";
+
     document.getElementById("quiz-section").innerHTML = `
-      <h4>Quiz Result</h4>
-      <p><strong>Score:</strong> ${result.score}</p>
-      <p><strong>Status:</strong> ${result.passed ? "PASSED" : "FAILED"}</p>
-      <p>Total Questions: ${result.total_quiz}</p>
-      <p>Correct: ${result.correct}</p>
-      <p>Wrong: ${result.wrong}</p>
+      <div class="quiz-result">
+        <h4 style="color: ${statusClass}; margin-bottom: 30px; font-size: 1.8rem;">
+          ${statusEmoji} Quiz Result: ${statusText}
+        </h4>
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+          <div class="quiz-result-item">
+            <strong>Score:</strong>
+            <span style="font-size: 1.3rem; color: ${statusClass}; font-weight: 700;">${result.score}</span>
+          </div>
+          <div class="quiz-result-item">
+            <strong>Correct Answers:</strong>
+            <span style="color: #28a745; font-weight: 600;">${result.correct}/${result.total_quiz}</span>
+          </div>
+          <div class="quiz-result-item">
+            <strong>Wrong Answers:</strong>
+            <span style="color: #dc3545; font-weight: 600;">${result.wrong}</span>
+          </div>
+        </div>
+        <p style="margin-top: 20px; color: #666; text-align: center;">
+          ${result.passed ? "Excellent! You have successfully completed this module." : "Don't worry! Review the material and try again."}
+        </p>
+      </div>
     `;
   }
 

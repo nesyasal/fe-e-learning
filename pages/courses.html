@@ -28,6 +28,175 @@
     <link rel="stylesheet" href="../assets/css/slicknav.css" />
     <link rel="stylesheet" href="../assets/css/style.css" />
     <!-- <link rel="stylesheet" href="css/responsive.css"> -->
+
+    <style>
+      /* Star Rating Styles */
+      .course-rating {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 12px 0;
+        font-size: 0.95rem;
+      }
+
+      .star-rating {
+        display: inline-flex;
+        gap: 2px;
+      }
+
+      .star {
+        font-size: 16px;
+        color: #ddd;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .star.filled {
+        color: #ffc107;
+        text-shadow: 0 0 2px rgba(255, 193, 7, 0.5);
+      }
+
+      .star:hover {
+        transform: scale(1.1);
+      }
+
+      .rating-text {
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      .rating-value {
+        font-weight: 600;
+        color: #333;
+      }
+
+      /* Rating Modal Styles */
+      .rating-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+
+      .rating-modal-overlay.active {
+        display: flex;
+      }
+
+      .rating-modal {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      .rating-modal h3 {
+        margin: 0 0 20px 0;
+        color: #333;
+        font-size: 1.5rem;
+      }
+
+      .modal-star-rating {
+        display: flex;
+        gap: 8px;
+        margin: 20px 0;
+        justify-content: center;
+      }
+
+      .modal-star-rating .star {
+        font-size: 36px;
+        cursor: pointer;
+      }
+
+      .rating-form-group {
+        margin: 20px 0;
+      }
+
+      .rating-form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 500;
+      }
+
+      .rating-form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-family: inherit;
+        resize: vertical;
+        min-height: 100px;
+      }
+
+      .rating-form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 25px;
+      }
+
+      .modal-buttons button {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .modal-buttons .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .modal-buttons .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      .modal-buttons .btn-cancel {
+        background: #f0f0f0;
+        color: #333;
+      }
+
+      .modal-buttons .btn-cancel:hover {
+        background: #e0e0e0;
+      }
+
+      .rating-info {
+        font-size: 0.9rem;
+        color: #999;
+        text-align: center;
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 4px;
+        min-height: 20px;
+      }
+
+      .rating-info.error {
+        background: #fee;
+        color: #dc3545;
+      }
+
+      .rating-info.success {
+        background: #efe;
+        color: #28a745;
+      }
+    </style>
   </head>
 
   <body>
@@ -216,6 +385,30 @@
     <div id="footer"></div>
     <!-- footer -->
 
+    <!-- Rating Modal -->
+    <div id="rating-modal-overlay" class="rating-modal-overlay">
+      <div class="rating-modal">
+        <h3 id="modal-course-title">Rate This Course</h3>
+        <p style="color: #666; margin-bottom: 15px;">How would you rate this course?</p>
+        
+        <div class="modal-star-rating" id="modal-star-rating">
+          <!-- Stars will be inserted by JS -->
+        </div>
+
+        <div class="rating-form-group">
+          <label for="feedback-text">Your Feedback (Optional)</label>
+          <textarea id="feedback-text" placeholder="Share your thoughts about this course..."></textarea>
+        </div>
+
+        <div class="modal-buttons">
+          <button class="btn-submit" id="submit-rating-btn">Submit Rating</button>
+          <button class="btn-cancel" id="cancel-rating-btn">Cancel</button>
+        </div>
+
+        <div class="rating-info" id="rating-info"></div>
+      </div>
+    </div>
+
     <!-- form itself end-->
     <form id="test-form" class="white-popup-block mfp-hide">
       <div class="popup_box">
@@ -316,6 +509,8 @@
         getUserEnrollments,
         enrollCourse,
         isCourseEnrolled,
+        getCourseRating,
+        submitCourseRating,
       } from "../assets/js/api/student.js";
 
       document.addEventListener("DOMContentLoaded", async () => {
@@ -392,13 +587,51 @@
 
         const images = ["1.png", "2.png", "3.png", "4.png", "5.png", "6.png"];
 
-        courses.forEach((course) => {
+        for (const course of courses) {
           const enrolled = isLoggedIn
             ? isCourseEnrolled(course.id, enrollments)
             : false;
 
           const card = document.createElement("div");
           card.className = "col-xl-4 col-lg-4 col-md-6";
+
+          // Load rating if enrolled
+          let ratingHTML = "";
+          if (enrolled) {
+            try {
+              const ratingData = await getCourseRating(course.id);
+              if (ratingData && ratingData.rating) {
+                const stars = "★".repeat(ratingData.rating) + "☆".repeat(5 - ratingData.rating);
+                ratingHTML = `
+                  <div class="course-rating">
+                    <div class="star-rating">
+                      ${stars}
+                    </div>
+                    <span class="rating-text">Your rating: <span class="rating-value">${ratingData.rating}/5</span></span>
+                  </div>
+                `;
+              } else {
+                ratingHTML = `
+                  <div class="course-rating" style="cursor: pointer;" onclick="openRatingModal('${course.id}', '${course.title}')">
+                    <div class="star-rating" id="rate-stars-${course.id}">
+                      ☆☆☆☆☆
+                    </div>
+                    <span class="rating-text" style="color: #667eea; font-weight: 500;">Click to rate</span>
+                  </div>
+                `;
+              }
+            } catch (e) {
+              console.log("No rating data for course", course.id);
+              ratingHTML = `
+                <div class="course-rating" style="cursor: pointer;" onclick="openRatingModal('${course.id}', '${course.title}')">
+                  <div class="star-rating" id="rate-stars-${course.id}">
+                    ☆☆☆☆☆
+                  </div>
+                  <span class="rating-text" style="color: #667eea; font-weight: 500;">Click to rate</span>
+                </div>
+              `;
+            }
+          }
 
           card.innerHTML = `
             <div class="single_courses">
@@ -422,6 +655,8 @@
                   ${course.description || ""}
                 </p>
 
+                ${ratingHTML}
+
                 <div style="margin-top:12px">
                   ${
                     !isLoggedIn
@@ -429,7 +664,7 @@
                           Login to Enroll
                         </button>`
                       : enrolled
-                      ? `<button class="boxed_btn_green" onclick="window.location.href='course_details.html?id=${course.id}'">
+                      ? `<button class="boxed_btn_orange" onclick="window.location.href='course_details.html?id=${course.id}'">
                           Start Learning
                         </button>`
                       : `<button class="boxed_btn_orange enroll-btn" data-id="${course.id}">
@@ -442,7 +677,7 @@
           `;
 
           container.appendChild(card);
-        });
+        }
 
         // enroll button handler
         document.querySelectorAll(".enroll-btn").forEach((btn) => {
@@ -461,6 +696,129 @@
           });
         });
       }
+
+      // Global Rating Modal Functions
+      let currentCourseId = null;
+      let currentStarRating = 0;
+
+      window.openRatingModal = function(courseId, courseTitle) {
+        console.log("Opening rating modal for course:", courseId, courseTitle);
+        
+        if (!courseId) {
+          alert("Error: Course ID is missing");
+          return;
+        }
+        
+        currentCourseId = courseId;
+        currentStarRating = 0;
+        
+        document.getElementById("modal-course-title").textContent = `Rate "${courseTitle}"`;
+        document.getElementById("feedback-text").value = "";
+        document.getElementById("rating-info").textContent = "";
+        
+        renderStars();
+        document.getElementById("rating-modal-overlay").classList.add("active");
+      };
+
+      function renderStars() {
+        try {
+          const container = document.getElementById("modal-star-rating");
+          if (!container) {
+            console.error("Modal star rating container not found");
+            return;
+          }
+          
+          container.innerHTML = "";
+          
+          for (let i = 1; i <= 5; i++) {
+            const star = document.createElement("span");
+            star.className = "star" + (i <= currentStarRating ? " filled" : "");
+            star.textContent = "★";
+            star.style.cursor = "pointer";
+            star.addEventListener("click", () => {
+              currentStarRating = i;
+              renderStars();
+            });
+            star.addEventListener("mouseover", () => {
+              const allStars = container.querySelectorAll(".star");
+              allStars.forEach((s, idx) => {
+                s.classList.toggle("filled", idx < i);
+              });
+            });
+            
+            container.appendChild(star);
+          }
+          
+          container.addEventListener("mouseleave", renderStars);
+        } catch (e) {
+          console.error("Error rendering stars:", e);
+        }
+      }
+
+      document.getElementById("submit-rating-btn").addEventListener("click", async () => {
+        if (currentStarRating === 0) {
+          document.getElementById("rating-info").textContent = "Please select a rating";
+          document.getElementById("rating-info").style.color = "#dc3545";
+          return;
+        }
+
+        if (!currentCourseId) {
+          document.getElementById("rating-info").textContent = "Error: Course ID missing";
+          document.getElementById("rating-info").style.color = "#dc3545";
+          return;
+        }
+
+        const feedback = document.getElementById("feedback-text").value;
+        const btn = document.getElementById("submit-rating-btn");
+        const infoDiv = document.getElementById("rating-info");
+        
+        btn.disabled = true;
+        btn.textContent = "Submitting...";
+        infoDiv.textContent = "Submitting your rating...";
+        infoDiv.style.color = "#666";
+
+        try {
+          console.log("Submitting rating:", { courseId: currentCourseId, rating: currentStarRating, feedback });
+          const result = await submitCourseRating(currentCourseId, currentStarRating, feedback);
+          console.log("Rating submission result:", result);
+          
+          infoDiv.textContent = "✓ Rating submitted successfully!";
+          infoDiv.style.color = "#28a745";
+          
+          setTimeout(() => {
+            document.getElementById("rating-modal-overlay").classList.remove("active");
+            window.location.reload();
+          }, 1500);
+        } catch (e) {
+          console.error("Rating submission failed:", e);
+          console.error("Error details:", e.message);
+          
+          let errorMsg = "Failed to submit rating";
+          if (e.message.includes("401") || e.message.includes("Unauthorized")) {
+            errorMsg = "Your session expired. Please refresh and try again.";
+          } else if (e.message.includes("404")) {
+            errorMsg = "Rating endpoint not found. Please contact support.";
+          } else if (e.message) {
+            errorMsg = e.message;
+          }
+          
+          infoDiv.textContent = "✗ " + errorMsg;
+          infoDiv.style.color = "#dc3545";
+          btn.disabled = false;
+          btn.textContent = "Submit Rating";
+        }
+      });
+
+      document.getElementById("cancel-rating-btn").addEventListener("click", () => {
+        document.getElementById("rating-modal-overlay").classList.remove("active");
+      });
+
+      // Close modal when clicking outside
+      document.getElementById("rating-modal-overlay").addEventListener("click", (e) => {
+        if (e.target.id === "rating-modal-overlay") {
+          document.getElementById("rating-modal-overlay").classList.remove("active");
+        }
+      });
     </script>
   </body>
 </html>

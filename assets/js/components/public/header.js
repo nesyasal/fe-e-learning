@@ -46,6 +46,12 @@ export function Header() {
     ? `<li><a href="${basePath}pages/nlp_dashboard.html">Reflection</a></li>`
     : "";
 
+  // Hide About and Contact for logged-in users
+  const aboutContactMenu = !isLoggedIn
+    ? `<li><a href="${basePath}pages/about.html">About</a></li>
+                  <li><a href="${basePath}pages/contact.html">Contact</a></li>`
+    : "";
+
   /* =====================
      AUTH SECTION (RIGHT)
   ====================== */
@@ -84,8 +90,7 @@ export function Header() {
                     </ul>
                   </li>
 
-                  <li><a href="${basePath}pages/about.html">About</a></li>
-                  <li><a href="${basePath}pages/contact.html">Contact</a></li>
+                  ${aboutContactMenu}
 
                   ${userNav}
                 </ul>

@@ -76,7 +76,6 @@ export async function getModuleQuizzes(courseId, moduleId) {
   return [];
 }
 
-
 // POST /api/me/courses/:courseId/modules/:moduleId/quizzes/submit
 export async function submitModuleQuiz(courseId, moduleId, answers) {
   const token = localStorage.getItem("token");
@@ -100,8 +99,6 @@ export async function submitModuleQuiz(courseId, moduleId, answers) {
 
   return response.json();
 }
-
-
 
 export async function getModulePDFUrl(courseId, moduleId) {
   // Fetch PDF directly because `apiFetch` expects JSON responses
@@ -160,4 +157,62 @@ export async function deleteUserAccount() {
   return apiFetch("/me/profile", {
     method: "DELETE",
   });
+}
+
+/* ================= RATING/FEEDBACK ================= */
+
+// POST /api/me/courses/:id/rating
+export async function submitCourseRating(courseId, rating, feedback = "") {
+  if (!courseId || !rating) {
+    throw new Error("Course ID and rating are required");
+  }
+
+  console.log("submitCourseRating called with:", {
+    courseId,
+    rating,
+    feedback,
+  });
+
+  try {
+    const payload = { rating: parseInt(rating), feedback };
+    console.log("Sending payload:", payload);
+
+    const result = await apiFetch(`/me/courses/${courseId}/rating`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    console.log("Rating submission response:", result);
+    return result;
+  } catch (error) {
+    console.error("submitCourseRating error:", error);
+    throw error;
+  }
+}
+
+// GET /api/me/courses/:id/rating
+export async function getCourseRating(courseId) {
+  try {
+    const result = await apiFetch(`/me/courses/${courseId}/rating`, {
+      method: "GET",
+    });
+    console.log("getCourseRating result:", result);
+    return result;
+  } catch (e) {
+    // If endpoint doesn't exist or no rating yet, return null
+    console.log("getCourseRating - no rating found or error:", e.message);
+    return null;
+  }
+}
+
+// GET /api/courses/:id/ratings (average rating)
+export async function getCourseAverageRating(courseId) {
+  try {
+    return await apiFetch(`/courses/${courseId}/ratings`, {
+      method: "GET",
+    });
+  } catch (e) {
+    console.log("getCourseAverageRating error:", e.message);
+    return null;
+  }
 }
