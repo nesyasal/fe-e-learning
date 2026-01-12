@@ -114,10 +114,6 @@
                 <canvas id="chartModules"></canvas>
               </div>
 
-              <div style="width: 100%; max-width: 900px; margin-top: 40px">
-                <canvas id="chartQuizzes"></canvas>
-              </div>
-
               <div style="width: 100%; max-width: 500px; margin-top: 40px">
                 <canvas id="chartPublished"></canvas>
               </div>
@@ -370,21 +366,17 @@
       }
 
       let chartModules = null;
-      let chartQuizzes = null;
       let chartPublished = null;
 
       function renderCharts() {
         const ctx1 = document.getElementById("chartModules");
-        const ctx2 = document.getElementById("chartQuizzes");
         const ctx3 = document.getElementById("chartPublished");
 
         const labels = data.courses.map((c) => c.title);
         const modulesData = data.courses.map((c) => c.total_modules || 0);
-        const quizzesData = data.courses.map((c) => c.total_quizzes || 0);
 
         // Hapus grafik lama agar tidak double render
         if (chartModules) chartModules.destroy();
-        if (chartQuizzes) chartQuizzes.destroy();
         if (chartPublished) chartPublished.destroy();
 
         chartModules = new Chart(ctx1, {
@@ -402,27 +394,13 @@
           options: { responsive: true },
         });
 
-        chartQuizzes = new Chart(ctx2, {
-          type: "bar",
-          data: {
-            labels,
-            datasets: [
-              {
-                label: "Jumlah Quiz",
-                data: quizzesData,
-                backgroundColor: "#f6ad55",
-              },
-            ],
-          },
-        });
-
         const publishedCount = data.courses.filter((c) => c.published).length;
         const draftCount = data.courses.length - publishedCount;
 
         chartPublished = new Chart(ctx3, {
           type: "pie",
           data: {
-            labels: ["Published", "Draft"],
+            labels: ["Published", "Unpublished"],
             datasets: [
               {
                 data: [publishedCount, draftCount],
