@@ -29,6 +29,7 @@
     <link rel="stylesheet" href="../assets/css/style.css" />
     <link rel="stylesheet" href="../assets/css/nlp-dashboard.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- <link rel="stylesheet" href="css/responsive.css"> -->
   </head>
 
@@ -103,6 +104,11 @@
                   <span class="result-label">Record ID:</span>
                   <span class="result-value" id="result-id">-</span>
                 </div>
+                <div class="result-item" id="probability-container" style="display:none; margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px;">
+                    <span class="result-label" style="display:block; margin-bottom:5px;">Probabilities:</span>
+                    <ul id="probability-list" style="padding-left: 0; margin: 0; list-style: none; font-size: 0.9em; color: #555;">
+                    </ul>
+                </div>
               </div>
             </div>
           </div>
@@ -128,6 +134,7 @@
                       <th>Text Preview</th>
                       <th>Category</th>
                       <th>Confidence</th>
+                      <th>Probabilities</th>
                       <th>Date</th>
                     </tr>
                   </thead>
@@ -142,6 +149,36 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Metric Section -->
+        <div class="row mt-4">
+           <div class="col-xl-6 col-md-12">
+              <div class="nlp-card">
+                  <h4 class="card-title">Model Performance (ROC Curve)</h4>
+                  <p class="card-subtitle">Receiver Operating Characteristic for Mental Health Classification</p>
+                  <div style="height: 300px;">
+                      <canvas id="rocChart"></canvas>
+                  </div>
+              </div>
+           </div>
+           <div class="col-xl-6 col-md-12">
+               <div class="nlp-card">
+                   <h4 class="card-title">Confusion Matrix</h4>
+                  <p class="card-subtitle">Model accuracy distribution per class</p>
+                   <!-- Simple Table for Confusion Matrix -->
+                   <div>
+                       <table class="table table-bordered table-sm text-center mb-0" style="font-size: 0.8rem; table-layout: fixed; width: 100%;" id="cm-table">
+                           <thead style="background: #f9f9f9;">
+                               <!-- Headers will be injected -->
+                           </thead>
+                           <tbody>
+                               <tr><td colspan="5">Loading...</td></tr>
+                           </tbody>
+                       </table>
+                   </div>
+               </div>
+           </div>
         </div>
       </div>
     </div>
@@ -158,6 +195,330 @@
 
       document.getElementById("header").innerHTML = Header();
       document.getElementById("footer").innerHTML = Footer();
+    </script>
+
+    <!-- API Integration Script -->
+    <script>
+      const API_BASE_URL = "http://127.0.0.1:5000";
+      const USER_ID = 1; // Hardcoded for now
+
+      // Elements
+      const inputText = document.getElementById("input-text");
+      const btnPredict = document.querySelector(".btn-predict");
+      const btnClear = document.querySelector(".btn-clear");
+      const predictResult = document.getElementById("predict-result");
+      const resultCategory = document.getElementById("result-category");
+      const resultConfidence = document.getElementById("result-confidence");
+      const resultId = document.getElementById("result-id");
+      const btnRefresh = document.querySelector(".btn-refresh");
+      const historyTbody = document.getElementById("history-tbody");
+
+      // --- Predict Function ---
+      btnPredict.addEventListener("click", async () => {
+        const text = inputText.value.trim();
+        if (!text) {
+          Swal.fire("Error", "Please enter some text to analyze.", "warning");
+          return;
+        }
+
+        // Show loading state (optional)
+        btnPredict.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Analyzing...';
+        btnPredict.disabled = true;
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/predict`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              text: text,
+              user_id: USER_ID,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+          }
+
+          const data = await response.json();
+          // data example: { record_id: 123, predicted_label: "Anxiety", predicted_id: 0, probabilities: {...} }
+
+          // Show Result
+          resultCategory.textContent = data.predicted_label;
+          
+          // Get max probability for confidence
+          let maxProb = 0;
+          if (data.probabilities) {
+             const probValues = Object.values(data.probabilities);
+             if (probValues.length > 0) {
+                 maxProb = Math.max(...probValues);
+             }
+          }
+          // Format percentage
+          resultConfidence.textContent = (maxProb * 100).toFixed(2) + "%";
+          
+          resultId.textContent = data.record_id;
+          
+          // Populate Probabilities
+          const probList = document.getElementById("probability-list");
+          const probContainer = document.getElementById("probability-container");
+          probList.innerHTML = ""; // Clear previous
+
+          if (data.probabilities) {
+             const sortedProbs = Object.entries(data.probabilities)
+                .sort(([,a], [,b]) => b - a);
+                
+             sortedProbs.forEach(([label, prob]) => {
+                const li = document.createElement("li");
+                li.style.display = "flex";
+                li.style.justifyContent = "space-between";
+                li.innerHTML = `<span>${label}</span> <span>${(prob * 100).toFixed(2)}%</span>`;
+                probList.appendChild(li);
+             });
+             probContainer.style.display = "block";
+          } else {
+             probContainer.style.display = "none";
+          }
+
+          predictResult.style.display = "block";
+
+          // Refresh history automatically
+          fetchHistory();
+
+          Swal.fire("Success", "Analysis complete!", "success");
+
+        } catch (error) {
+          console.error("Prediction Error:", error);
+          Swal.fire("Error", "Failed to get prediction. Ensure backend is running.", "error");
+        } finally {
+          btnPredict.innerHTML = '<i class="fa fa-flask"></i> Save';
+          btnPredict.disabled = false;
+        }
+      });
+
+      // --- Clear Function ---
+      btnClear.addEventListener("click", () => {
+        inputText.value = "";
+        predictResult.style.display = "none";
+        resultCategory.textContent = "-";
+        resultConfidence.textContent = "-";
+        resultId.textContent = "-";
+      });
+
+      // --- History Function ---
+      async function fetchHistory() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/history?user_id=${USER_ID}&limit=10`);
+            if (!response.ok) {
+                 throw new Error("Failed to fetch history");
+            }
+            const data = await response.json();
+            // data.items is the list
+
+            historyTbody.innerHTML = ""; // Clear existing
+
+            if (!data.items || data.items.length === 0) {
+                historyTbody.innerHTML = `
+                    <tr>
+                      <td colspan="6" class="text-center text-muted">
+                        No predictions yet.
+                      </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            data.items.forEach(item => {
+                // Determine max probability
+                let confidence = "N/A";
+                if (item.probabilities) {
+                    const probValues = Object.values(item.probabilities);
+                    if(probValues.length > 0) {
+                         confidence = (Math.max(...probValues) * 100).toFixed(1) + "%";
+                    }
+                }
+
+                // Format Date
+                const dateObj = new Date(item.created_at);
+                const dateStr = dateObj.toLocaleDateString() + " " + dateObj.toLocaleTimeString();
+
+                // Format Probabilities for Table
+                let probHtml = "-";
+                if (item.probabilities) {
+                     const sortedProbs = Object.entries(item.probabilities)
+                        .sort(([,a], [,b]) => b - a);
+                     probHtml = '<ul style="list-style:none; padding:0; margin:0; font-size:0.85em;">' + 
+                        sortedProbs.map(([label, prob]) => 
+                            `<li><strong>${label}:</strong> ${(prob * 100).toFixed(1)}%</li>`
+                        ).join("") + 
+                     '</ul>';
+                }
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.input_text.substring(0, 30)}${item.input_text.length > 30 ? "..." : ""}</td>
+                    <td>${item.predicted_label}</td>
+                    <td>${confidence}</td>
+                    <td>${probHtml}</td>
+                    <td>${dateStr}</td>
+                `;
+                historyTbody.appendChild(tr);
+            });
+
+        } catch (error) {
+            console.error("History Error:", error);
+             historyTbody.innerHTML = `
+                <tr>
+                  <td colspan="6" class="text-center text-danger">
+                    Error loading history. Check console.
+                  </td>
+                </tr>
+            `;
+        }
+      }
+
+      btnRefresh.addEventListener("click", fetchHistory);
+
+      // Initial Load
+      // Uncomment the line below if you want history to load on page open
+      fetchHistory();
+
+      // --- ROC Chart & CM Initialization ---
+      async function initMetrics() {
+         const ctx = document.getElementById('rocChart').getContext('2d');
+         const cmTable = document.getElementById('cm-table');
+         
+         const showPlaceholder = (msg) => {
+             // For Chart
+             const w = ctx.canvas.width;
+             const h = ctx.canvas.height;
+             ctx.clearRect(0,0,w,h);
+             ctx.textAlign = "center";
+             ctx.textBaseline = "middle";
+             ctx.font = "14px Poppins";
+             ctx.fillStyle = "#888";
+             ctx.fillText(msg, w/2, h/2);
+             
+             // For Table
+             cmTable.querySelector('tbody').innerHTML = `<tr><td colspan="100%" class="text-center text-muted">${msg}</td></tr>`;
+         };
+
+         try {
+             // 1. Fetch Data
+             const response = await fetch(`${API_BASE_URL}/metrics`);
+             
+             if (response.status === 404) {
+                 showPlaceholder("Validation data (ml/dataset.xlsx or csv) not found.");
+                 return;
+             }
+             
+             if (!response.ok) {
+                 throw new Error("Failed to load metrics");
+             }
+             
+             const data = await response.json();
+             
+             // 2. Render ROC Chart
+             new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: `ROC Curve (Macro-avg, AUC = ${data.auc.toFixed(2)})`,
+                            data: data.points,
+                            borderColor: '#a64eee',
+                            backgroundColor: 'rgba(166, 78, 238, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 5
+                        },
+                        {
+                            label: 'Random Guess',
+                            data: [{x: 0, y: 0}, {x: 1, y: 1}],
+                            borderColor: '#ccc',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: { display: true, text: 'False Positive Rate' },
+                            min: 0, max: 1
+                        },
+                        y: {
+                            type: 'linear',
+                            title: { display: true, text: 'True Positive Rate' },
+                            min: 0, max: 1
+                        }
+                    },
+                     plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `(${context.parsed.x.toFixed(2)}, ${context.parsed.y.toFixed(2)})`;
+                                }
+                            }
+                        }
+                    }
+                }
+             });
+             
+             // 3. Render Confusion Matrix
+             const classes = data.classes;
+             const cm = data.confusion_matrix;
+             
+             // Header
+             let theadHtml = '<tr><th style="width: 20%; padding: 4px;">Act \\ Pred</th>';
+             const colWidth = 80 / classes.length;
+             classes.forEach(cls => {
+                 // Truncate long class names for header
+                 const shortName = cls.length > 8 ? cls.substring(0, 6) + '..' : cls;
+                 theadHtml += `<th style="width: ${colWidth}%; padding: 4px;" title="${cls}">${shortName}</th>`;
+             });
+             theadHtml += '</tr>';
+             cmTable.querySelector('thead').innerHTML = theadHtml;
+             
+             // Body
+             let tbodyHtml = '';
+             cm.forEach((row, i) => {
+                 const actualClass = classes[i];
+                 const shortName = actualClass.length > 8 ? actualClass.substring(0, 6) + '..' : actualClass;
+                 
+                 tbodyHtml += `<tr><td class="text-start" style="padding: 4px; font-weight: bold;" title="${actualClass}">${shortName}</td>`;
+                 row.forEach((count, j) => {
+                     // Highlight diagonal
+                     const isDiag = i === j;
+                     // Simple heatmap logic
+                     const bg = isDiag ? 'style="background-color: #dcfce7; font-weight: bold; padding: 4px;"' : 'style="padding: 4px;"';
+                     tbodyHtml += `<td ${bg}>${count}</td>`;
+                 });
+                 tbodyHtml += '</tr>';
+             });
+             cmTable.querySelector('tbody').innerHTML = tbodyHtml;
+             
+         } catch (error) {
+             console.error("Metric Error:", error);
+             showPlaceholder("Error loading model metrics.");
+         }
+      }
+
+      // Initialize chart on load
+      document.addEventListener("DOMContentLoaded", () => {
+         initMetrics();
+      });
+
     </script>
 
   </body>
