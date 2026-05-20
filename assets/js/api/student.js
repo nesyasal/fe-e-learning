@@ -162,38 +162,36 @@ export async function deleteUserAccount() {
 /* ================= RATING/FEEDBACK ================= */
 
 // POST /api/me/courses/:id/rating
-export async function submitCourseRating(courseId, rating, feedback = "") {
-  if (!courseId || !rating) {
-    throw new Error("Course ID and rating are required");
-  }
+export async function submitCourseRating(courseId, rating, feedback) {
+  const token = localStorage.getItem("token");
 
-  console.log("submitCourseRating called with:", {
-    courseId,
-    rating,
-    feedback,
+  const res = await fetch("http://localhost:8080/api/feedback", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      course_id: Number(courseId),
+      rating,
+      comment: feedback
+    })
   });
 
-  try {
-    const payload = { rating: parseInt(rating), feedback };
-    console.log("Sending payload:", payload);
-
-    const result = await apiFetch(`/me/courses/${courseId}/rating`, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-
-    console.log("Rating submission response:", result);
-    return result;
-  } catch (error) {
-    console.error("submitCourseRating error:", error);
-    throw error;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Submit feedback gagal");
   }
+
+  return await res.json(); // ✅ SEKARANG VALID
 }
+
+
 
 // GET /api/me/courses/:id/rating
 export async function getCourseRating(courseId) {
   try {
-    const result = await apiFetch(`/me/courses/${courseId}/rating`, {
+    const result = await apiFetch(`/courses/${courseId}/rating`, {
       method: "GET",
     });
     console.log("getCourseRating result:", result);
