@@ -1,4 +1,4 @@
-import { apiFetch } from "./config.js";
+import { apiFetch, API_BASE_URL } from "./config.js";
 
 /* ================= COURSES ================= */
 
@@ -66,7 +66,7 @@ export async function getCourseModules(courseId) {
 export async function getModuleQuizzes(courseId, moduleId) {
   const res = await apiFetch(
     `/me/courses/${courseId}/modules/${moduleId}/quizzes`,
-    { method: "GET" }
+    { method: "GET" },
   );
 
   // 🔥 NORMALISASI SEKALI DI SINI
@@ -81,7 +81,7 @@ export async function submitModuleQuiz(courseId, moduleId, answers) {
   const token = localStorage.getItem("token");
 
   const response = await fetch(
-    `http://127.0.0.1:8080/api/me/courses/${courseId}/modules/${moduleId}/submit`,
+    `${API_BASE_URL}/me/courses/${courseId}/modules/${moduleId}/submit`,
     {
       method: "POST",
       headers: {
@@ -89,7 +89,7 @@ export async function submitModuleQuiz(courseId, moduleId, answers) {
         ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(answers), // 🔥 PENTING: ARRAY, BUKAN OBJECT
-    }
+    },
   );
 
   if (!response.ok) {
@@ -106,8 +106,8 @@ export async function getModulePDFUrl(courseId, moduleId) {
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   const response = await fetch(
-    `http://127.0.0.1:8080/api/me/courses/${courseId}/modules/${moduleId}/pdf`,
-    { method: "GET", headers }
+    `${API_BASE_URL}/me/courses/${courseId}/modules/${moduleId}/pdf`,
+    { method: "GET", headers },
   );
 
   if (!response.ok) {
@@ -128,7 +128,7 @@ export async function getModulePDFUrl(courseId, moduleId) {
 export async function getQuizResult(courseId, moduleId) {
   return await apiFetch(
     `/courses/${courseId}/modules/${moduleId}/quiz-results`,
-    { method: "GET" }
+    { method: "GET" },
   );
 }
 
@@ -165,17 +165,17 @@ export async function deleteUserAccount() {
 export async function submitCourseRating(courseId, rating, feedback) {
   const token = localStorage.getItem("token");
 
-  const res = await fetch("http://localhost:8080/api/feedback", {
+  const res = await fetch(`${API_BASE_URL}/feedback`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       course_id: Number(courseId),
       rating,
-      comment: feedback
-    })
+      comment: feedback,
+    }),
   });
 
   if (!res.ok) {
@@ -185,8 +185,6 @@ export async function submitCourseRating(courseId, rating, feedback) {
 
   return await res.json(); // ✅ SEKARANG VALID
 }
-
-
 
 // GET /api/me/courses/:id/rating
 export async function getCourseRating(courseId) {
