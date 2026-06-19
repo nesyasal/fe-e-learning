@@ -1,5 +1,5 @@
 // assets/js/api/instructor.js
-import { apiFetch } from "./config.js";
+import { apiFetch, API_URL } from "./config.js";
 
 export async function getInstructorEarnings() {
   return apiFetch("/instructor/earnings", { method: "GET" });
@@ -70,23 +70,28 @@ export async function getCourseDetail(id) {
 // formData: title (string), pdf (file, optional), order (optional)
 export async function addModule(courseId, formData) {
   const token = localStorage.getItem("token");
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   const response = await fetch(
-    `http://127.0.0.1:8080/api/instructor/courses/${courseId}/modules`,
+    `${API_URL}/instructor/courses/${courseId}/modules`,
     {
       method: "POST",
-      headers,
+      headers: token
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {},
       body: formData,
-    }
+    },
   );
 
   if (!response.ok) {
     let errorMsg = `API error: ${response.status}`;
+
     try {
       const errorData = await response.json();
       errorMsg = errorData.error || errorData.message || errorMsg;
     } catch (e) {}
+
     throw new Error(errorMsg);
   }
 
@@ -97,23 +102,28 @@ export async function addModule(courseId, formData) {
 // PUT /instructor/courses/:course_id/modules/:module_id
 export async function editModule(courseId, moduleId, formData) {
   const token = localStorage.getItem("token");
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   const response = await fetch(
-    `http://127.0.0.1:8080/api/instructor/courses/${courseId}/modules/${moduleId}`,
+    `${API_URL}/instructor/courses/${courseId}/modules/${moduleId}`,
     {
       method: "PUT",
-      headers,
+      headers: token
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {},
       body: formData,
-    }
+    },
   );
 
   if (!response.ok) {
     let errorMsg = `API error: ${response.status}`;
+
     try {
       const errorData = await response.json();
       errorMsg = errorData.error || errorData.message || errorMsg;
     } catch (e) {}
+
     throw new Error(errorMsg);
   }
 
@@ -129,27 +139,32 @@ export async function deleteModule(courseId, moduleId) {
 }
 
 export async function getModulePDFUrl(courseId, moduleId) {
-  // Fetch PDF directly because `apiFetch` expects JSON responses
   const token = localStorage.getItem("token");
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   const response = await fetch(
-    `http://127.0.0.1:8080/api/instructor/courses/${courseId}/modules/${moduleId}/pdf`,
-    { method: "GET", headers }
+    `${API_URL}/instructor/courses/${courseId}/modules/${moduleId}/pdf`,
+    {
+      method: "GET",
+      headers: token
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {},
+    },
   );
 
   if (!response.ok) {
     let errorMsg = `API error: ${response.status}`;
+
     try {
       const errorData = await response.json();
       errorMsg = errorData.error || errorData.message || errorMsg;
-    } catch (e) {
-      // ignore parse error
-    }
+    } catch (e) {}
+
     throw new Error(errorMsg);
   }
 
-  return response.blob(); // return Blob bukan JSON
+  return response.blob();
 }
 
 // Tambah banyak quiz untuk satu modul
@@ -161,7 +176,7 @@ export async function addQuiz(courseId, moduleId, quizList) {
     {
       method: "POST",
       body: JSON.stringify(quizList),
-    }
+    },
   );
 }
 
@@ -172,7 +187,7 @@ export async function getModuleQuizzes(courseId, moduleId) {
     `/instructor/courses/${courseId}/modules/${moduleId}/quizzes`,
     {
       method: "GET",
-    }
+    },
   );
 }
 
