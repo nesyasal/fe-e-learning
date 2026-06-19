@@ -1,4 +1,5 @@
-export const API_BASE_URL = "https://be-elearning-production.up.railway.app";
+export const API_BASE_URL =
+  "https://be-elearning-production.up.railway.app/api";
 
 export async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem("token");
